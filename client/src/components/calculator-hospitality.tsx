@@ -1,9 +1,12 @@
 import { useState, useCallback, useMemo } from "react";
+import { format, parse } from "date-fns";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
 import {
   Table,
   TableBody,
@@ -26,9 +29,74 @@ import {
   BedDouble,
   CalendarDays,
   Printer,
+  CalendarIcon,
 } from "lucide-react";
 import { StepBadge, KpiCard, money, pct } from "./calculator-shared";
+import { cn } from "@/lib/utils";
 import type { RoomType, Season, RateMatrix } from "@shared/schema";
+
+function isoToDate(iso: string): Date | undefined {
+  if (!iso) return undefined;
+  const d = parse(iso, "yyyy-MM-dd", new Date());
+  return isNaN(d.getTime()) ? undefined : d;
+}
+
+function dateToIso(d: Date): string {
+  return format(d, "yyyy-MM-dd");
+}
+
+function formatDisplay(iso: string): string {
+  const d = isoToDate(iso);
+  return d ? format(d, "d MMM yyyy") : "Pick date";
+}
+
+function DatePickerButton({
+  value,
+  onChange,
+  testId,
+  compact,
+}: {
+  value: string;
+  onChange: (iso: string) => void;
+  testId: string;
+  compact?: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+  const selected = isoToDate(value);
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          className={cn(
+            "justify-start text-left font-normal",
+            compact ? "h-7 text-xs px-2 w-[120px]" : "h-9 text-sm w-full",
+            !value && "text-muted-foreground"
+          )}
+          data-testid={testId}
+        >
+          <CalendarIcon className={cn("mr-1.5 flex-shrink-0", compact ? "h-3 w-3" : "h-3.5 w-3.5")} />
+          <span className="truncate">{value ? formatDisplay(value) : "Pick date"}</span>
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-auto p-0" align="start">
+        <Calendar
+          mode="single"
+          selected={selected}
+          onSelect={(day) => {
+            if (day) {
+              onChange(dateToIso(day));
+              setOpen(false);
+            }
+          }}
+          defaultMonth={selected}
+          initialFocus
+        />
+      </PopoverContent>
+    </Popover>
+  );
+}
 
 export interface HospitalityCalcState {
   roomTypes: RoomType[];
@@ -356,12 +424,12 @@ export default function CalculatorHospitality({ state, setters, nextId, setNextI
               <Input id="input-season-name" data-testid="input-season-name" placeholder="e.g., Peak" value={newSeasonName} onChange={(e) => setNewSeasonName(e.target.value)} />
             </div>
             <div>
-              <Label className="text-xs font-medium" htmlFor="input-season-start">Start Date</Label>
-              <Input id="input-season-start" data-testid="input-season-start" type="date" value={newSeasonStart} onChange={(e) => setNewSeasonStart(e.target.value)} />
+              <Label className="text-xs font-medium">Start Date</Label>
+              <DatePickerButton value={newSeasonStart} onChange={setNewSeasonStart} testId="input-season-start" />
             </div>
             <div>
-              <Label className="text-xs font-medium" htmlFor="input-season-end">End Date</Label>
-              <Input id="input-season-end" data-testid="input-season-end" type="date" value={newSeasonEnd} onChange={(e) => setNewSeasonEnd(e.target.value)} />
+              <Label className="text-xs font-medium">End Date</Label>
+              <DatePickerButton value={newSeasonEnd} onChange={setNewSeasonEnd} testId="input-season-end" />
             </div>
             <div>
               <Label className="text-xs font-medium" htmlFor="input-season-occ">Occupancy %</Label>
@@ -401,10 +469,10 @@ export default function CalculatorHospitality({ state, setters, nextId, setNextI
                           <Input className="h-7 text-sm w-24" value={s.name} onChange={(e) => updateSeasonField(s.id, "name", e.target.value)} data-testid={`input-season-name-${s.id}`} />
                         </TableCell>
                         <TableCell>
-                          <Input className="h-7 text-sm w-32" type="date" value={s.startDate} onChange={(e) => updateSeasonField(s.id, "startDate", e.target.value)} data-testid={`input-season-start-${s.id}`} />
+                          <DatePickerButton compact value={s.startDate} onChange={(v) => updateSeasonField(s.id, "startDate", v)} testId={`input-season-start-${s.id}`} />
                         </TableCell>
                         <TableCell>
-                          <Input className="h-7 text-sm w-32" type="date" value={s.endDate} onChange={(e) => updateSeasonField(s.id, "endDate", e.target.value)} data-testid={`input-season-end-${s.id}`} />
+                          <DatePickerButton compact value={s.endDate} onChange={(v) => updateSeasonField(s.id, "endDate", v)} testId={`input-season-end-${s.id}`} />
                         </TableCell>
                         <TableCell className="text-sm text-right tabular-nums font-semibold">
                           {nights > 0 ? nights : <span className="text-destructive">0</span>}

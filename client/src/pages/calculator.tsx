@@ -367,14 +367,16 @@ export default function CalculatorPage() {
                           <p className="text-sm font-medium truncate" data-testid={`text-valuation-name-${v.id}`}>
                             {v.name}
                           </p>
-                          <p className="text-[11px] text-muted-foreground mt-0.5">
-                            <Badge variant="outline" className="text-[9px] px-1 py-0 mr-1 no-default-active-elevate">
+                          <div className="text-[11px] text-muted-foreground mt-0.5 flex items-center flex-wrap gap-x-1">
+                            <Badge variant="outline" className="text-[9px] px-1 py-0 no-default-active-elevate">
                               {v.incomeModel === "hospitality" ? "Hospitality" : "Rental"}
                             </Badge>
-                            {v.incomeModel !== "hospitality" && (PROPERTY_LABELS[v.propertyType as PropertyType] || v.propertyType)}
-                            {" · "}
-                            {formatDate(v.updatedAt)}
-                          </p>
+                            <span>
+                              {v.incomeModel !== "hospitality" && (PROPERTY_LABELS[v.propertyType as PropertyType] || v.propertyType)}
+                              {" · "}
+                              {formatDate(v.updatedAt)}
+                            </span>
+                          </div>
                         </div>
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
