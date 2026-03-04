@@ -1,0 +1,117 @@
+MODIFICATION REQUEST (apply to my existing Replit app)
+
+I already built the first version of the Property Valuation Calculator based on the earlier spec (PGI → EGI → NOI → Value, with Stabilised vs Actual scenario, cap rate range, income line items, etc.).
+
+Now MODIFY the app to support TWO property income models, with a property-type selection step BEFORE the calculator.
+
+1) ADD STEP 1: PROPERTY TYPE / INCOME MODEL SELECTOR (Pre-Calculator)
+- Create a first screen/page/step titled: “What type of property are you valuing?”
+- Provide two selectable options (cards or buttons):
+  A) “Rental / Lease Property (Commercial or Residential)”
+     - Uses the existing calculator logic (rentable areas lines + other income + actual revenue optional + stabilised occupancy + cap range).
+  B) “Hospitality Property (Lodge / Guesthouse / Hotel) – Seasonal Rates”
+     - NEW calculator mode described below.
+- After selection, show the relevant calculator.
+- Include a Back button to change property type at any time.
+- Persist the chosen type in state (local state is fine; localStorage optional).
+
+2) KEEP EXISTING MODE AS-IS (Rental / Lease)
+- Do not break the current features.
+- Ensure “Actual scenario” still uses actual annual revenue WITHOUT applying vacancy again.
+- Keep derived current occupancy output (Actual ÷ PGI).
+
+3) ADD NEW MODE: HOSPITALITY (SEASONAL ROOM RATE SCHEDULE)
+In Hospitality mode, income is NOT based on m² rental. It is based on:
+Room inventory × season nights × season occupancy × season rate.
+
+3.1 Inputs required (Hospitality Mode UI)
+A) Room Types table (repeatable rows)
+- Room Type Name (e.g., Standard, Deluxe, Family)
+- Number of Rooms (integer)
+- OPTIONAL: If rates differ by room type per season, include rate inputs per season (see below).
+
+B) Seasons table (repeatable rows)
+Each season row must include:
+- Season Name (e.g., Off-Peak, Peak, Holiday)
+- Nights in Season (integer)  [do not require date ranges; nights is enough]
+- Occupancy % for that season (0–100)
+- Rate per Night (R)  (choose one of the two approaches below)
+
+Choose ONE approach and implement it cleanly:
+APPROACH 1 (Simpler, recommended for v1):
+- Use ONE blended “Average Rate per Night (ADR)” per season (single rate input in the season row)
+- This assumes one average across all room types.
+
+APPROACH 2 (More detailed):
+- Rate per Night is specified per room type per season (matrix)
+- Only do this if it’s quick; otherwise default to Approach 1.
+
+C) Other Income (Annual) (optional)
+- Input: “Other Annual Income (R)” (e.g., events, restaurant, tours, laundry)
+OR “Other Income per Occupied Night” (optional advanced)
+For v1, do simple “Other Annual Income”.
+
+D) Actual Revenue (last 12 months) (optional)
+- “Actual total revenue received in last 12 months (R)” for reality-check and derived occupancy factor.
+NOTE: For hospitality, derived occupancy from actual revenue is optional and tricky unless ADR is known. Implement a simple ratio only:
+  Performance Factor = Actual Annual Revenue ÷ Modelled Annual Revenue (EGI model)
+Display it as “Actual vs Modelled Performance %”.
+
+E) Expenses + Cap Rate Range (same as existing)
+- Operating Expenses (Annual)
+- Utility under/over recovery (Annual) optional
+- Cap Rate Low % and High %
+- Plus Excess Land (optional)
+- Less Refurb (optional)
+
+3.2 Hospitality Calculations (Approach 1: blended ADR per season)
+Let:
+TotalRooms = Σ(roomType.rooms)
+For each season s:
+AvailableRoomNights_s = TotalRooms × NightsInSeason_s
+OccupiedRoomNights_s = AvailableRoomNights_s × (Occupancy%_s / 100)
+SeasonRevenue_s = OccupiedRoomNights_s × RatePerNight_s
+
+AnnualRoomRevenue = Σ(SeasonRevenue_s)
+EGI_used (hospitality) = AnnualRoomRevenue + OtherAnnualIncome
+
+NOI = EGI_used − Opex + UtilityAdj
+ValueRange:
+ValueHigh = (NOI ÷ capLow) + ExcessLand − Refurb
+ValueLow  = (NOI ÷ capHigh) + ExcessLand − Refurb
+Display range low–high.
+
+3.3 Hospitality Outputs
+- Total Rooms
+- Revenue per season (table)
+- Total annual room revenue
+- Total EGI used (annual)
+- NOI
+- Value range
+- Optional: Modelled ADR (weighted) and Weighted Average Occupancy (weighted by room nights)
+
+Weighted ADR:
+WeightedADR = AnnualRoomRevenue ÷ Σ(OccupiedRoomNights_s)
+Weighted Occupancy:
+WeightedOcc = Σ(OccupiedRoomNights_s) ÷ Σ(AvailableRoomNights_s)
+
+3.4 Validation and UX
+- If no seasons are entered or nights = 0, show warning and set outputs to 0.
+- If cap rates invalid, show warning.
+- Live recalculation on input changes.
+- Currency formatting en-ZA.
+- Make the UI clean and simple; do not overwhelm.
+
+4) ROUTING / COMPONENT STRUCTURE
+- Implement as a single-page app with a stepper, or two routes.
+- Suggested structure:
+  - StepSelectType component/page
+  - CalculatorRental component (existing)
+  - CalculatorHospitality component (new)
+- Keep code readable and modular.
+
+5) DATA EXPORT (nice-to-have, optional)
+- Add a “Print / Export Summary” button that opens a simple printable summary (window.print()) for the selected mode.
+
+DELIVERABLE
+Update the existing Replit project to include the selection step and the new hospitality seasonal-rate calculator mode, without breaking the original rental/lease calculator.
