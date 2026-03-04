@@ -323,7 +323,7 @@ export default function CalculatorHospitality({ state, setters, nextId, setNextI
     return {
       totalRooms, totalGLA, totalAvailableRoomNights, totalOccupiedRoomNights,
       annualRoomRevenue, egiUsed, noi, lo, hi,
-      weightedADR, weightedOcc, performancePct, seasonBreakdown,
+      weightedADR, weightedOcc, actualRev, performancePct, seasonBreakdown,
     };
   }, [roomTypes, seasons, rateMatrix, otherAnnualIncome, actualAnnualRev, opexAnnual, utilityAdj, capLowPct, capHighPct, excessLand, refurb]);
 
@@ -573,16 +573,6 @@ export default function CalculatorHospitality({ state, setters, nextId, setNextI
             </div>
           </div>
 
-          {calc.performancePct !== null && (
-            <div className="mt-3 p-3 rounded-md bg-muted/50 border">
-              <p className="text-xs text-muted-foreground">
-                Actual vs Modelled Performance:
-                <span className={`ml-1 font-semibold ${calc.performancePct >= 100 ? "text-emerald-600 dark:text-emerald-400" : "text-amber-600 dark:text-amber-400"}`} data-testid="text-performance-pct">
-                  {pct(calc.performancePct)}
-                </span>
-              </p>
-            </div>
-          )}
         </Card>
       </div>
 
@@ -696,6 +686,38 @@ export default function CalculatorHospitality({ state, setters, nextId, setNextI
           <KpiCard label="EGI (Annual)" value={`R ${money(calc.egiUsed)}`} testId="text-hosp-egi" />
           <KpiCard label="NOI (Annual)" value={`R ${money(calc.noi)}`} testId="text-hosp-noi" />
         </div>
+
+        {calc.actualRev > 0 && (
+          <Card className="p-4 border-primary/15 bg-primary/[0.02] dark:bg-primary/[0.04]" data-testid="card-performance-factor">
+            <h3 className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground mb-3">
+              Performance Factor (Reality Check)
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div>
+                <p className="text-[11px] text-muted-foreground">Actual Revenue (12m)</p>
+                <p className="text-sm font-semibold tabular-nums mt-0.5" data-testid="text-actual-revenue">
+                  R {money(calc.actualRev)}
+                </p>
+              </div>
+              <div>
+                <p className="text-[11px] text-muted-foreground">Modelled Revenue (Annual)</p>
+                <p className="text-sm font-semibold tabular-nums mt-0.5" data-testid="text-modelled-revenue">
+                  R {money(calc.egiUsed)}
+                </p>
+              </div>
+              <div>
+                <p className="text-[11px] text-muted-foreground">Performance Factor</p>
+                <p className={`text-sm font-bold tabular-nums mt-0.5 ${
+                  calc.performancePct !== null && calc.performancePct >= 100
+                    ? "text-emerald-600 dark:text-emerald-400"
+                    : "text-amber-600 dark:text-amber-400"
+                }`} data-testid="text-performance-pct">
+                  {calc.performancePct !== null ? pct(calc.performancePct) : "—"}
+                </p>
+              </div>
+            </div>
+          </Card>
+        )}
 
         <div className="relative rounded-md bg-primary p-5 text-primary-foreground">
           <div className="absolute inset-0 rounded-md bg-gradient-to-br from-white/10 to-transparent pointer-events-none" />
