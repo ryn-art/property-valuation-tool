@@ -17,6 +17,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   Trash2,
   Building2,
@@ -30,6 +31,7 @@ import {
   Loader2,
   ArrowLeft,
   Hotel,
+  FolderOpen,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-provider";
 import { useToast } from "@/hooks/use-toast";
@@ -58,6 +60,7 @@ export default function CalculatorPage() {
   const [incomeModel, setIncomeModel] = useState<IncomeModel | null>(null);
   const [activeValuationId, setActiveValuationId] = useState<number | null>(null);
   const [valuationName, setValuationName] = useState("Untitled Valuation");
+  const [savedPopoverOpen, setSavedPopoverOpen] = useState(false);
   const [isEditingName, setIsEditingName] = useState(false);
   const [editNameValue, setEditNameValue] = useState("");
 
@@ -320,100 +323,6 @@ export default function CalculatorPage() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
-        <div className="grid grid-cols-1 xl:grid-cols-[280px_1fr] gap-5">
-          <div className="xl:order-first order-last print:hidden">
-            <Card className="p-4">
-              <div className="flex items-center justify-between gap-2 mb-3">
-                <h3 className="text-sm font-semibold">Saved Valuations</h3>
-                <Button size="sm" variant="secondary" onClick={startNew} data-testid="button-new-valuation">
-                  <FilePlus2 className="w-3.5 h-3.5 mr-1.5" />
-                  New
-                </Button>
-              </div>
-
-              {isListLoading ? (
-                <div className="space-y-2">
-                  <Skeleton className="h-14 w-full" />
-                  <Skeleton className="h-14 w-full" />
-                  <Skeleton className="h-14 w-full" />
-                </div>
-              ) : isListError ? (
-                <div className="rounded-md border border-destructive/30 bg-destructive/5 p-4 text-center">
-                  <p className="text-xs text-destructive">Failed to load saved valuations. Please refresh the page.</p>
-                </div>
-              ) : !valuationsList || valuationsList.length === 0 ? (
-                <div className="rounded-md border border-dashed p-4 text-center">
-                  <FileText className="w-6 h-6 text-muted-foreground/40 mx-auto mb-1.5" />
-                  <p className="text-xs text-muted-foreground">No saved valuations yet. Fill in the calculator and hit Save.</p>
-                </div>
-              ) : (
-                <div className="space-y-1.5 max-h-[60vh] xl:max-h-[calc(100vh-200px)] overflow-y-auto">
-                  {valuationsList.map((v) => (
-                    <div
-                      key={v.id}
-                      role="button"
-                      tabIndex={0}
-                      data-testid={`card-valuation-${v.id}`}
-                      className={`group rounded-md p-2.5 cursor-pointer transition-colors border ${
-                        activeValuationId === v.id
-                          ? "bg-primary/5 dark:bg-primary/10 border-primary/20"
-                          : "border-transparent hover:bg-muted/50"
-                      }`}
-                      onClick={() => loadValuation(v)}
-                      onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); loadValuation(v); } }}
-                    >
-                      <div className="flex items-start justify-between gap-1">
-                        <div className="min-w-0">
-                          <p className="text-sm font-medium truncate" data-testid={`text-valuation-name-${v.id}`}>
-                            {v.name}
-                          </p>
-                          <div className="text-[11px] text-muted-foreground mt-0.5 flex items-center flex-wrap gap-x-1">
-                            <Badge variant="outline" className="text-[9px] px-1 py-0 no-default-active-elevate">
-                              {v.incomeModel === "hospitality" ? "Hospitality" : "Rental"}
-                            </Badge>
-                            <span>
-                              {v.incomeModel !== "hospitality" && (PROPERTY_LABELS[v.propertyType as PropertyType] || v.propertyType)}
-                              {" · "}
-                              {formatDate(v.updatedAt)}
-                            </span>
-                          </div>
-                        </div>
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button
-                              size="icon"
-                              variant="ghost"
-                              className="opacity-0 group-hover:opacity-100 flex-shrink-0"
-                              aria-label={`Delete ${v.name}`}
-                              data-testid={`button-delete-${v.id}`}
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              <Trash2 className="w-3 h-3 text-destructive" />
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Delete valuation?</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                This will permanently delete "{v.name}". This action cannot be undone.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction onClick={() => deleteMutation.mutate(v.id)} data-testid={`button-confirm-delete-${v.id}`}>
-                                Delete
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </Card>
-          </div>
-
           <div className="space-y-5">
             {!incomeModel ? (
               <div className="flex flex-col items-center justify-center py-12 sm:py-20">
@@ -504,6 +413,100 @@ export default function CalculatorPage() {
                     {activeValuationId && (
                       <Badge variant="secondary" className="text-[10px] no-default-active-elevate">Saved</Badge>
                     )}
+                    <Popover open={savedPopoverOpen} onOpenChange={setSavedPopoverOpen}>
+                      <PopoverTrigger asChild>
+                        <Button size="sm" variant="outline" data-testid="button-open-saved">
+                          <FolderOpen className="w-3.5 h-3.5 mr-1.5" />
+                          Saved
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent align="end" className="w-80 p-3">
+                        <div className="flex items-center justify-between gap-2 mb-2">
+                          <h3 className="text-sm font-semibold">Saved Valuations</h3>
+                          <Button size="sm" variant="secondary" onClick={() => { startNew(); setSavedPopoverOpen(false); }} data-testid="button-new-valuation">
+                            <FilePlus2 className="w-3.5 h-3.5 mr-1.5" />
+                            New
+                          </Button>
+                        </div>
+                        {isListLoading ? (
+                          <div className="space-y-2">
+                            <Skeleton className="h-12 w-full" />
+                            <Skeleton className="h-12 w-full" />
+                          </div>
+                        ) : isListError ? (
+                          <p className="text-xs text-destructive py-2">Failed to load. Refresh the page.</p>
+                        ) : !valuationsList || valuationsList.length === 0 ? (
+                          <div className="rounded-md border border-dashed p-4 text-center">
+                            <FileText className="w-5 h-5 text-muted-foreground/40 mx-auto mb-1" />
+                            <p className="text-xs text-muted-foreground">No saved valuations yet.</p>
+                          </div>
+                        ) : (
+                          <div className="space-y-1 max-h-[50vh] overflow-y-auto">
+                            {valuationsList.map((v) => (
+                              <div
+                                key={v.id}
+                                role="button"
+                                tabIndex={0}
+                                data-testid={`card-valuation-${v.id}`}
+                                className={`group rounded-md p-2 cursor-pointer transition-colors border ${
+                                  activeValuationId === v.id
+                                    ? "bg-primary/5 dark:bg-primary/10 border-primary/20"
+                                    : "border-transparent hover:bg-muted/50"
+                                }`}
+                                onClick={() => { loadValuation(v); setSavedPopoverOpen(false); }}
+                                onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); loadValuation(v); setSavedPopoverOpen(false); } }}
+                              >
+                                <div className="flex items-start justify-between gap-1">
+                                  <div className="min-w-0">
+                                    <p className="text-sm font-medium truncate" data-testid={`text-valuation-name-${v.id}`}>
+                                      {v.name}
+                                    </p>
+                                    <div className="text-[11px] text-muted-foreground mt-0.5 flex items-center flex-wrap gap-x-1">
+                                      <Badge variant="outline" className="text-[9px] px-1 py-0 no-default-active-elevate">
+                                        {v.incomeModel === "hospitality" ? "Hospitality" : "Rental"}
+                                      </Badge>
+                                      <span>
+                                        {v.incomeModel !== "hospitality" && (PROPERTY_LABELS[v.propertyType as PropertyType] || v.propertyType)}
+                                        {" · "}
+                                        {formatDate(v.updatedAt)}
+                                      </span>
+                                    </div>
+                                  </div>
+                                  <AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                      <Button
+                                        size="icon"
+                                        variant="ghost"
+                                        className="opacity-0 group-hover:opacity-100 flex-shrink-0 h-7 w-7"
+                                        aria-label={`Delete ${v.name}`}
+                                        data-testid={`button-delete-${v.id}`}
+                                        onClick={(e) => e.stopPropagation()}
+                                      >
+                                        <Trash2 className="w-3 h-3 text-destructive" />
+                                      </Button>
+                                    </AlertDialogTrigger>
+                                    <AlertDialogContent>
+                                      <AlertDialogHeader>
+                                        <AlertDialogTitle>Delete valuation?</AlertDialogTitle>
+                                        <AlertDialogDescription>
+                                          This will permanently delete "{v.name}". This action cannot be undone.
+                                        </AlertDialogDescription>
+                                      </AlertDialogHeader>
+                                      <AlertDialogFooter>
+                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                        <AlertDialogAction onClick={() => deleteMutation.mutate(v.id)} data-testid={`button-confirm-delete-${v.id}`}>
+                                          Delete
+                                        </AlertDialogAction>
+                                      </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                  </AlertDialog>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </PopoverContent>
+                    </Popover>
                     <Button size="sm" onClick={handleSave} disabled={isSaving} data-testid="button-save">
                       {isSaving ? <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> : <Save className="w-3.5 h-3.5 mr-1.5" />}
                       {activeValuationId ? "Save" : "Save New"}
@@ -523,7 +526,6 @@ export default function CalculatorPage() {
               </>
             )}
           </div>
-        </div>
       </div>
     </div>
   );
