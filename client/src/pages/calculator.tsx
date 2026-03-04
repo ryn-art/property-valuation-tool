@@ -21,6 +21,12 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import {
   Plus,
   Trash2,
   Building2,
@@ -30,7 +36,10 @@ import {
   CheckCircle2,
   RotateCcw,
   Info,
+  ListPlus,
+  ArrowRight,
 } from "lucide-react";
+import { ThemeToggle } from "@/components/theme-provider";
 
 interface IncomeLine {
   id: number;
@@ -71,6 +80,43 @@ function pct(n: number): string {
 
 function clamp(x: number, min: number, max: number): number {
   return Math.min(Math.max(x, min), max);
+}
+
+function StepBadge({ step }: { step: number }) {
+  return (
+    <Badge className="w-6 h-6 rounded-md justify-center no-default-active-elevate flex-shrink-0">
+      {step}
+    </Badge>
+  );
+}
+
+function KpiCard({
+  label,
+  value,
+  testId,
+  accent,
+}: {
+  label: string;
+  value: string;
+  testId: string;
+  accent?: boolean;
+}) {
+  return (
+    <Card
+      className={`p-3.5 transition-colors ${
+        accent
+          ? "bg-primary/5 dark:bg-primary/10 border-primary/10 dark:border-primary/20"
+          : ""
+      }`}
+    >
+      <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+        {label}
+      </p>
+      <p className="text-lg font-semibold mt-1.5 tabular-nums" data-testid={testId}>
+        {value}
+      </p>
+    </Card>
+  );
 }
 
 export default function CalculatorPage() {
@@ -165,8 +211,8 @@ export default function CalculatorPage() {
     const opex = Number(opexAnnual || 0);
     const util = Number(utilityAdj || 0);
 
-    let capLow = Number(capLowPct || 0) / 100;
-    let capHigh = Number(capHighPct || 0) / 100;
+    const capLow = Number(capLowPct || 0) / 100;
+    const capHigh = Number(capHighPct || 0) / 100;
     const capMin = Math.min(capLow, capHigh);
     const capMax = Math.max(capLow, capHigh);
 
@@ -235,492 +281,498 @@ export default function CalculatorPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="max-w-6xl mx-auto px-4 py-6 sm:py-8">
-        <header className="mb-6">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="p-2 rounded-md bg-primary/10">
-              <Building2 className="w-5 h-5 text-primary" />
+      <div className="border-b bg-card/50 dark:bg-card/30 backdrop-blur-sm sticky top-0 z-50">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-8 h-8 rounded-md bg-primary flex items-center justify-center flex-shrink-0">
+              <Building2 className="w-4 h-4 text-primary-foreground" />
             </div>
-            <h1
-              className="text-xl sm:text-2xl font-bold tracking-tight"
-              data-testid="text-title"
-            >
-              Property Valuation Calculator
-            </h1>
+            <div className="min-w-0">
+              <h1
+                className="text-sm font-semibold truncate"
+                data-testid="text-title"
+              >
+                Property Valuation Calculator
+              </h1>
+              <p className="text-[11px] text-muted-foreground hidden sm:block">
+                Income Approach
+              </p>
+            </div>
           </div>
-          <div className="flex flex-wrap items-center gap-2 ml-11">
-            <p className="text-sm text-muted-foreground" data-testid="text-subtitle">
-              Income Approach — indicative only. Use evidence (rent comparables +
-              sales/cap evidence) to support assumptions.
-            </p>
-            <Badge variant="secondary" className="text-xs no-default-active-elevate">
-              PGI &rarr; EGI &rarr; NOI &rarr; Value
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <Badge variant="secondary" className="text-[10px] no-default-active-elevate hidden sm:inline-flex">
+              PGI <ArrowRight className="w-2.5 h-2.5 mx-0.5" /> EGI <ArrowRight className="w-2.5 h-2.5 mx-0.5" /> NOI <ArrowRight className="w-2.5 h-2.5 mx-0.5" /> Value
             </Badge>
+            <ThemeToggle />
           </div>
-        </header>
+        </div>
+      </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <Card className="p-5">
-            <div className="flex items-center gap-2 mb-1">
-              <TrendingUp className="w-4 h-4 text-primary" />
-              <h2 className="text-base font-semibold" data-testid="text-section-income">
-                1) Income Potential (PGI)
-              </h2>
-            </div>
-            <p className="text-xs text-muted-foreground mb-4">
-              Build your <strong>Potential Gross Income</strong> at 100% occupancy
-              from areas/rates (plus other monthly income).
-            </p>
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+        <p className="text-sm text-muted-foreground mb-6 max-w-2xl" data-testid="text-subtitle">
+          Indicative only. Use evidence (rent comparables + sales/cap evidence) to
+          support assumptions.
+        </p>
 
-            <div className="grid grid-cols-1 sm:grid-cols-[1fr_0.7fr_0.7fr] gap-3 items-end">
-              <div>
-                <Label className="text-xs" htmlFor="input-desc">
-                  Description
-                </Label>
-                <Input
-                  id="input-desc"
-                  data-testid="input-desc"
-                  placeholder="e.g., Office Area"
-                  value={desc}
-                  onChange={(e) => setDesc(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && addLine()}
-                />
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+          {/* LEFT: INCOME INPUTS */}
+          <div className="space-y-5">
+            <Card className="p-5">
+              <div className="flex items-center gap-2.5 mb-4">
+                <StepBadge step={1} />
+                <div>
+                  <h2 className="text-sm font-semibold" data-testid="text-section-income">
+                    Income Potential (PGI)
+                  </h2>
+                  <p className="text-[11px] text-muted-foreground mt-0.5">
+                    Build Potential Gross Income at 100% occupancy
+                  </p>
+                </div>
               </div>
-              <div>
-                <Label className="text-xs" htmlFor="input-size">
-                  Size (m²)
-                </Label>
-                <Input
-                  id="input-size"
-                  data-testid="input-size"
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  placeholder="0"
-                  value={size}
-                  onChange={(e) => setSize(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && addLine()}
-                />
-              </div>
-              <div>
-                <Label className="text-xs" htmlFor="input-rate">
-                  Rate (R/m²/month)
-                </Label>
-                <Input
-                  id="input-rate"
-                  data-testid="input-rate"
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  placeholder="0"
-                  value={rate}
-                  onChange={(e) => setRate(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && addLine()}
-                />
-              </div>
-            </div>
 
-            <div className="flex gap-2 mt-3">
-              <Button size="sm" onClick={addLine} data-testid="button-add-line">
-                <Plus className="w-3.5 h-3.5 mr-1" />
+              <div className="grid grid-cols-1 sm:grid-cols-[1fr_0.65fr_0.65fr] gap-3 items-end">
+                <div>
+                  <Label className="text-xs font-medium" htmlFor="input-desc">
+                    Description
+                  </Label>
+                  <Input
+                    id="input-desc"
+                    data-testid="input-desc"
+                    placeholder="e.g., Office Area"
+                    value={desc}
+                    onChange={(e) => setDesc(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && addLine()}
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs font-medium" htmlFor="input-size">
+                    Size (m²)
+                  </Label>
+                  <Input
+                    id="input-size"
+                    data-testid="input-size"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    placeholder="0"
+                    value={size}
+                    onChange={(e) => setSize(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && addLine()}
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs font-medium" htmlFor="input-rate">
+                    Rate (R/m²/mo)
+                  </Label>
+                  <Input
+                    id="input-rate"
+                    data-testid="input-rate"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    placeholder="0"
+                    value={rate}
+                    onChange={(e) => setRate(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && addLine()}
+                  />
+                </div>
+              </div>
+
+              <Button
+                size="sm"
+                className="mt-3"
+                onClick={addLine}
+                data-testid="button-add-line"
+              >
+                <Plus className="w-3.5 h-3.5 mr-1.5" />
                 Add line
               </Button>
-            </div>
 
-            {lines.length > 0 && (
-              <div className="mt-4 border rounded-md">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="text-xs">Description</TableHead>
-                      <TableHead className="text-xs text-right">m²</TableHead>
-                      <TableHead className="text-xs text-right">R/m²</TableHead>
-                      <TableHead className="text-xs text-right">Monthly (R)</TableHead>
-                      <TableHead className="text-xs w-10"></TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {lines.map((l) => (
-                      <TableRow key={l.id} data-testid={`row-line-${l.id}`}>
-                        <TableCell className="text-sm">{l.desc}</TableCell>
-                        <TableCell className="text-sm text-right tabular-nums">
-                          {money(l.size)}
-                        </TableCell>
-                        <TableCell className="text-sm text-right tabular-nums">
-                          {money(l.rate)}
-                        </TableCell>
-                        <TableCell className="text-sm text-right tabular-nums font-medium">
-                          {money(l.size * l.rate)}
-                        </TableCell>
-                        <TableCell>
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            onClick={() => removeLine(l.id)}
-                            data-testid={`button-remove-${l.id}`}
-                          >
-                            <Trash2 className="w-3.5 h-3.5 text-destructive" />
-                          </Button>
-                        </TableCell>
+              {lines.length === 0 ? (
+                <div className="mt-4 rounded-md border border-dashed p-6 flex flex-col items-center justify-center text-center">
+                  <ListPlus className="w-8 h-8 text-muted-foreground/40 mb-2" />
+                  <p className="text-xs text-muted-foreground">
+                    No income lines yet. Add areas and rates above to build your PGI.
+                  </p>
+                </div>
+              ) : (
+                <div className="mt-4 rounded-md border overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="text-[11px] font-medium uppercase tracking-wider">
+                          Description
+                        </TableHead>
+                        <TableHead className="text-[11px] font-medium uppercase tracking-wider text-right">
+                          m²
+                        </TableHead>
+                        <TableHead className="text-[11px] font-medium uppercase tracking-wider text-right">
+                          R/m²
+                        </TableHead>
+                        <TableHead className="text-[11px] font-medium uppercase tracking-wider text-right">
+                          Monthly
+                        </TableHead>
+                        <TableHead className="w-10"></TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            )}
+                    </TableHeader>
+                    <TableBody>
+                      {lines.map((l) => (
+                        <TableRow key={l.id} data-testid={`row-line-${l.id}`}>
+                          <TableCell className="text-sm font-medium">
+                            {l.desc}
+                          </TableCell>
+                          <TableCell className="text-sm text-right tabular-nums text-muted-foreground">
+                            {money(l.size)}
+                          </TableCell>
+                          <TableCell className="text-sm text-right tabular-nums text-muted-foreground">
+                            {money(l.rate)}
+                          </TableCell>
+                          <TableCell className="text-sm text-right tabular-nums font-semibold">
+                            R {money(l.size * l.rate)}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              aria-label={`Remove ${l.desc}`}
+                              onClick={() => removeLine(l.id)}
+                              data-testid={`button-remove-${l.id}`}
+                            >
+                              <Trash2 className="w-3.5 h-3.5 text-destructive" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
-              <div>
-                <Label className="text-xs" htmlFor="input-other-monthly">
-                  Other Monthly Income (R){" "}
-                  <span className="text-muted-foreground">(optional)</span>
-                </Label>
-                <Input
-                  id="input-other-monthly"
-                  data-testid="input-other-monthly"
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  placeholder="0"
-                  value={otherMonthly}
-                  onChange={(e) => setOtherMonthly(e.target.value)}
-                />
+              <Separator className="my-4" />
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <Label className="text-xs font-medium" htmlFor="input-other-monthly">
+                    Other Monthly Income (R)
+                    <span className="text-muted-foreground font-normal ml-1">optional</span>
+                  </Label>
+                  <Input
+                    id="input-other-monthly"
+                    data-testid="input-other-monthly"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    placeholder="0"
+                    value={otherMonthly}
+                    onChange={(e) => setOtherMonthly(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs font-medium" htmlFor="input-actual-rev">
+                    Actual Revenue (12 mo)
+                    <span className="text-muted-foreground font-normal ml-1">optional</span>
+                  </Label>
+                  <Input
+                    id="input-actual-rev"
+                    data-testid="input-actual-rev"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    placeholder="0"
+                    value={actualAnnualRev}
+                    onChange={(e) => setActualAnnualRev(e.target.value)}
+                  />
+                </div>
               </div>
-              <div>
-                <Label className="text-xs" htmlFor="input-actual-rev">
-                  Actual Rental Revenue (last 12 months){" "}
-                  <span className="text-muted-foreground">(optional)</span>
-                </Label>
-                <Input
-                  id="input-actual-rev"
-                  data-testid="input-actual-rev"
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  placeholder="0"
-                  value={actualAnnualRev}
-                  onChange={(e) => setActualAnnualRev(e.target.value)}
-                />
-              </div>
+            </Card>
+
+            <div className="grid grid-cols-2 gap-3">
+              <KpiCard
+                label="Gross Monthly (100%)"
+                value={`R ${money(calc.pgiMonthly)}`}
+                testId="text-pgi-monthly"
+                accent
+              />
+              <KpiCard
+                label="Gross Annual (PGI)"
+                value={`R ${money(calc.pgiAnnual)}`}
+                testId="text-pgi-annual"
+                accent
+              />
             </div>
 
-            <div className="grid grid-cols-2 gap-3 mt-4">
-              <div className="border rounded-md p-3">
-                <p className="text-xs text-muted-foreground">
-                  Potential Gross Monthly (100%)
-                </p>
-                <p
-                  className="text-base font-bold mt-1 tabular-nums"
-                  data-testid="text-pgi-monthly"
-                >
-                  R {money(calc.pgiMonthly)}
-                </p>
-              </div>
-              <div className="border rounded-md p-3">
-                <p className="text-xs text-muted-foreground">
-                  Potential Gross Annual (PGI)
-                </p>
-                <p
-                  className="text-base font-bold mt-1 tabular-nums"
-                  data-testid="text-pgi-annual"
-                >
-                  R {money(calc.pgiAnnual)}
-                </p>
-              </div>
+            <div className="grid grid-cols-2 gap-3">
+              <KpiCard
+                label="Derived Occupancy"
+                value={calc.derivedOcc !== null ? pct(calc.derivedOcc) : "\u2014"}
+                testId="text-current-occ"
+              />
+              <KpiCard
+                label="Derived Vacancy"
+                value={calc.derivedVac !== null ? pct(calc.derivedVac) : "\u2014"}
+                testId="text-current-vac"
+              />
             </div>
 
-            <div className="grid grid-cols-2 gap-3 mt-3">
-              <div className="border rounded-md p-3">
-                <p className="text-xs text-muted-foreground">
-                  Derived Current Occupancy
-                </p>
-                <p
-                  className="text-base font-bold mt-1 tabular-nums"
-                  data-testid="text-current-occ"
-                >
-                  {calc.derivedOcc !== null ? pct(calc.derivedOcc) : "—"}
-                </p>
-              </div>
-              <div className="border rounded-md p-3">
-                <p className="text-xs text-muted-foreground">
-                  Derived Current Vacancy
-                </p>
-                <p
-                  className="text-base font-bold mt-1 tabular-nums"
-                  data-testid="text-current-vac"
-                >
-                  {calc.derivedVac !== null ? pct(calc.derivedVac) : "—"}
-                </p>
-              </div>
-            </div>
-
-            <div className="mt-4 flex items-start gap-2 text-xs text-muted-foreground leading-relaxed">
+            <div className="flex items-start gap-2.5 text-xs text-muted-foreground leading-relaxed px-1">
               <Info className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" />
               <p>
-                <strong>How occupancy is derived:</strong> Current Occupancy = Actual
-                Annual Revenue / Potential Gross Annual (PGI). If you don't enter actual
-                revenue, the calculator will skip this and just use your stabilised
-                assumption.
+                <strong>Occupancy derivation:</strong> Current Occupancy = Actual
+                Annual Revenue / PGI. Without actual revenue, stabilised assumptions are used.
               </p>
             </div>
 
             {calc.showDoubleVacWarning && (
               <div
-                className="mt-3 flex items-start gap-2 text-xs p-3 rounded-md bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-200"
+                className="flex items-start gap-2.5 text-xs p-3.5 rounded-md bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-200"
                 data-testid="warning-double-vacancy"
               >
                 <AlertTriangle className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" />
                 <p>
-                  Your <strong>actual annual revenue</strong> is already below PGI,
-                  which implies vacancy already exists. This calculator will{" "}
-                  <strong>not</strong> apply vacancy on the "Actual" scenario (to avoid
-                  double vacancy).
+                  Actual annual revenue is below PGI, implying existing vacancy.
+                  No additional vacancy is applied in the Actual scenario.
                 </p>
               </div>
             )}
-          </Card>
+          </div>
 
-          <Card className="p-5">
-            <div className="flex items-center gap-2 mb-1">
-              <Calculator className="w-4 h-4 text-primary" />
-              <h2 className="text-base font-semibold" data-testid="text-section-assumptions">
-                2) Assumptions + Value
-              </h2>
-            </div>
-
-            <div className="mt-3">
-              <Label className="text-xs" htmlFor="select-property-type">
-                Property Type{" "}
-                <span className="text-muted-foreground">
-                  (sets a sensible stabilised occupancy default)
-                </span>
-              </Label>
-              <Select
-                value={propertyType}
-                onValueChange={handlePropertyTypeChange}
-              >
-                <SelectTrigger
-                  id="select-property-type"
-                  data-testid="select-property-type"
-                >
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {(
-                    Object.keys(PROPERTY_LABELS) as PropertyType[]
-                  ).map((key) => (
-                    <SelectItem key={key} value={key}>
-                      {PROPERTY_LABELS[key]}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
-              <div>
-                <Label className="text-xs" htmlFor="input-stab-occ">
-                  Stabilised Occupancy (%)
-                </Label>
-                <Input
-                  id="input-stab-occ"
-                  data-testid="input-stab-occ"
-                  type="number"
-                  min="0"
-                  max="100"
-                  step="0.01"
-                  value={stabilisedOccPct}
-                  onChange={(e) => setStabilisedOccPct(e.target.value)}
-                />
+          {/* RIGHT: ASSUMPTIONS + OUTPUT */}
+          <div className="space-y-5">
+            <Card className="p-5">
+              <div className="flex items-center gap-2.5 mb-4">
+                <StepBadge step={2} />
+                <div>
+                  <h2 className="text-sm font-semibold" data-testid="text-section-assumptions">
+                    Assumptions + Value
+                  </h2>
+                  <p className="text-[11px] text-muted-foreground mt-0.5">
+                    Set property type, scenario, and cap rates
+                  </p>
+                </div>
               </div>
+
               <div>
-                <Label className="text-xs" htmlFor="select-scenario">
-                  Scenario
+                <Label className="text-xs font-medium" htmlFor="select-property-type">
+                  Property Type
                 </Label>
                 <Select
-                  value={scenario}
-                  onValueChange={(v) => setScenario(v as Scenario)}
+                  value={propertyType}
+                  onValueChange={handlePropertyTypeChange}
                 >
                   <SelectTrigger
-                    id="select-scenario"
-                    data-testid="select-scenario"
+                    id="select-property-type"
+                    data-testid="select-property-type"
                   >
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="stabilised">
-                      Stabilised Income (PGI x occ.)
-                    </SelectItem>
-                    <SelectItem value="actual">
-                      Actual Income (annual revenue)
-                    </SelectItem>
+                    {(Object.keys(PROPERTY_LABELS) as PropertyType[]).map(
+                      (key) => (
+                        <SelectItem key={key} value={key}>
+                          {PROPERTY_LABELS[key]}
+                        </SelectItem>
+                      )
+                    )}
                   </SelectContent>
                 </Select>
               </div>
-            </div>
 
-            <Separator className="my-4" />
-
-            <div>
-              <Label className="text-xs" htmlFor="input-opex">
-                Operating Expenses (Annual) (R)
-              </Label>
-              <Input
-                id="input-opex"
-                data-testid="input-opex"
-                type="number"
-                min="0"
-                step="0.01"
-                placeholder="0"
-                value={opexAnnual}
-                onChange={(e) => setOpexAnnual(e.target.value)}
-              />
-            </div>
-
-            <div className="mt-3">
-              <Label className="text-xs" htmlFor="input-utility">
-                Net Utility Under/(Over) Recovery (Annual) (R){" "}
-                <span className="text-muted-foreground">(optional)</span>
-              </Label>
-              <Input
-                id="input-utility"
-                data-testid="input-utility"
-                type="number"
-                step="0.01"
-                placeholder="0"
-                value={utilityAdj}
-                onChange={(e) => setUtilityAdj(e.target.value)}
-              />
-            </div>
-
-            <Separator className="my-4" />
-
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <Label className="text-xs" htmlFor="input-cap-low">
-                  Cap Rate Low (%)
-                </Label>
-                <Input
-                  id="input-cap-low"
-                  data-testid="input-cap-low"
-                  type="number"
-                  min="0.01"
-                  max="100"
-                  step="0.01"
-                  value={capLowPct}
-                  onChange={(e) => setCapLowPct(e.target.value)}
-                />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
+                <div>
+                  <Label className="text-xs font-medium" htmlFor="input-stab-occ">
+                    Stabilised Occupancy (%)
+                  </Label>
+                  <Input
+                    id="input-stab-occ"
+                    data-testid="input-stab-occ"
+                    type="number"
+                    min="0"
+                    max="100"
+                    step="0.01"
+                    value={stabilisedOccPct}
+                    onChange={(e) => setStabilisedOccPct(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs font-medium" htmlFor="select-scenario">
+                    Scenario
+                  </Label>
+                  <Select
+                    value={scenario}
+                    onValueChange={(v) => setScenario(v as Scenario)}
+                  >
+                    <SelectTrigger
+                      id="select-scenario"
+                      data-testid="select-scenario"
+                    >
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="stabilised">
+                        Stabilised (PGI x occ.)
+                      </SelectItem>
+                      <SelectItem value="actual">
+                        Actual (annual revenue)
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
-              <div>
-                <Label className="text-xs" htmlFor="input-cap-high">
-                  Cap Rate High (%)
-                </Label>
-                <Input
-                  id="input-cap-high"
-                  data-testid="input-cap-high"
-                  type="number"
-                  min="0.01"
-                  max="100"
-                  step="0.01"
-                  value={capHighPct}
-                  onChange={(e) => setCapHighPct(e.target.value)}
-                />
-              </div>
-            </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
-              <div>
-                <Label className="text-xs" htmlFor="input-excess">
-                  Plus: Expansion / Excess Land (R){" "}
-                  <span className="text-muted-foreground">(optional)</span>
-                </Label>
-                <Input
-                  id="input-excess"
-                  data-testid="input-excess"
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  placeholder="0"
-                  value={excessLand}
-                  onChange={(e) => setExcessLand(e.target.value)}
-                />
-              </div>
-              <div>
-                <Label className="text-xs" htmlFor="input-refurb">
-                  Less: Refurb / Tenant Installs (R){" "}
-                  <span className="text-muted-foreground">(optional)</span>
-                </Label>
-                <Input
-                  id="input-refurb"
-                  data-testid="input-refurb"
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  placeholder="0"
-                  value={refurb}
-                  onChange={(e) => setRefurb(e.target.value)}
-                />
-              </div>
-            </div>
+              <Separator className="my-4" />
 
-            <div className="flex gap-2 mt-4">
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={resetAll}
-                data-testid="button-reset"
-              >
-                <RotateCcw className="w-3.5 h-3.5 mr-1" />
-                Reset All
-              </Button>
-            </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <Label className="text-xs font-medium" htmlFor="input-opex">
+                    Operating Expenses (Annual)
+                  </Label>
+                  <Input
+                    id="input-opex"
+                    data-testid="input-opex"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    placeholder="R 0"
+                    value={opexAnnual}
+                    onChange={(e) => setOpexAnnual(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs font-medium" htmlFor="input-utility">
+                    Utility Recovery (Annual)
+                    <span className="text-muted-foreground font-normal ml-1">optional</span>
+                  </Label>
+                  <Input
+                    id="input-utility"
+                    data-testid="input-utility"
+                    type="number"
+                    step="0.01"
+                    placeholder="R 0"
+                    value={utilityAdj}
+                    onChange={(e) => setUtilityAdj(e.target.value)}
+                  />
+                </div>
+              </div>
 
-            <Separator className="my-4" />
+              <Separator className="my-4" />
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label className="text-xs font-medium" htmlFor="input-cap-low">
+                    Cap Rate Low (%)
+                  </Label>
+                  <Input
+                    id="input-cap-low"
+                    data-testid="input-cap-low"
+                    type="number"
+                    min="0.01"
+                    max="100"
+                    step="0.01"
+                    value={capLowPct}
+                    onChange={(e) => setCapLowPct(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs font-medium" htmlFor="input-cap-high">
+                    Cap Rate High (%)
+                  </Label>
+                  <Input
+                    id="input-cap-high"
+                    data-testid="input-cap-high"
+                    type="number"
+                    min="0.01"
+                    max="100"
+                    step="0.01"
+                    value={capHighPct}
+                    onChange={(e) => setCapHighPct(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
+                <div>
+                  <Label className="text-xs font-medium" htmlFor="input-excess">
+                    + Excess Land (R)
+                    <span className="text-muted-foreground font-normal ml-1">optional</span>
+                  </Label>
+                  <Input
+                    id="input-excess"
+                    data-testid="input-excess"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    placeholder="R 0"
+                    value={excessLand}
+                    onChange={(e) => setExcessLand(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs font-medium" htmlFor="input-refurb">
+                    - Refurb / Installs (R)
+                    <span className="text-muted-foreground font-normal ml-1">optional</span>
+                  </Label>
+                  <Input
+                    id="input-refurb"
+                    data-testid="input-refurb"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    placeholder="R 0"
+                    value={refurb}
+                    onChange={(e) => setRefurb(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <div className="mt-4">
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={resetAll}
+                  data-testid="button-reset"
+                >
+                  <RotateCcw className="w-3.5 h-3.5 mr-1.5" />
+                  Reset All
+                </Button>
+              </div>
+            </Card>
 
             {calc.showActualWarning && (
               <div
-                className="mb-3 flex items-start gap-2 text-xs p-3 rounded-md bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-200"
+                className="flex items-start gap-2.5 text-xs p-3.5 rounded-md bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-200"
                 data-testid="warning-no-actual-rev"
               >
                 <AlertTriangle className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" />
-                <p>
-                  Enter actual annual revenue to use the Actual scenario.
-                </p>
+                <p>Enter actual annual revenue to use the Actual scenario.</p>
               </div>
             )}
 
             <div className="grid grid-cols-2 gap-3">
-              <div className="border rounded-md p-3">
-                <p className="text-xs text-muted-foreground">
-                  Effective Gross Income Used (Annual)
-                </p>
-                <p
-                  className="text-base font-bold mt-1 tabular-nums"
-                  data-testid="text-egi"
-                >
-                  R {money(calc.egiUsed)}
-                </p>
-              </div>
-              <div className="border rounded-md p-3">
-                <p className="text-xs text-muted-foreground">NOI (Annual)</p>
-                <p
-                  className="text-base font-bold mt-1 tabular-nums"
-                  data-testid="text-noi"
-                >
-                  R {money(calc.noi)}
-                </p>
-              </div>
+              <KpiCard
+                label="EGI Used (Annual)"
+                value={`R ${money(calc.egiUsed)}`}
+                testId="text-egi"
+              />
+              <KpiCard
+                label="NOI (Annual)"
+                value={`R ${money(calc.noi)}`}
+                testId="text-noi"
+              />
             </div>
 
-            <div className="mt-4 p-4 rounded-md bg-primary/5 border border-primary/20">
-              <p
-                className="text-lg sm:text-xl font-bold tabular-nums"
-                data-testid="text-value-range"
-              >
-                Value Range: R {money(calc.lo)} – R {money(calc.hi)}
+            <div className="relative rounded-md bg-primary p-5 text-primary-foreground">
+              <div className="absolute inset-0 rounded-md bg-gradient-to-br from-white/10 to-transparent pointer-events-none" />
+              <p className="text-[11px] font-medium uppercase tracking-wider opacity-80">
+                Indicated Value Range
               </p>
               <p
-                className="text-xs text-muted-foreground mt-1"
+                className="text-xl sm:text-2xl font-bold mt-2 tabular-nums"
+                data-testid="text-value-range"
+              >
+                R {money(calc.lo)} – R {money(calc.hi)}
+              </p>
+              <p
+                className="text-xs mt-2 opacity-75"
                 data-testid="text-value-note"
               >
                 {calc.valueNote}
@@ -729,41 +781,48 @@ export default function CalculatorPage() {
 
             {calc.showActualNote && !calc.showActualWarning && (
               <div
-                className="mt-3 flex items-start gap-2 text-xs p-3 rounded-md bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-200"
+                className="flex items-start gap-2.5 text-xs p-3.5 rounded-md bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-200"
                 data-testid="note-actual-scenario"
               >
                 <CheckCircle2 className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" />
                 <p>
-                  <strong>Actual scenario:</strong> Value is based on{" "}
-                  <strong>actual annual revenue</strong> (no additional vacancy
-                  applied).
+                  <strong>Actual scenario:</strong> Value is based on actual annual
+                  revenue (no additional vacancy applied).
                 </p>
               </div>
             )}
 
-            <div className="mt-4 text-xs text-muted-foreground space-y-1">
-              <p className="font-medium">Formulas:</p>
-              <ul className="list-disc ml-4 space-y-0.5">
-                <li>
-                  <strong>PGI</strong> = Potential Monthly x 12
-                </li>
-                <li>
-                  <strong>Current Occupancy</strong> = Actual Annual Revenue / PGI
-                  (if provided)
-                </li>
-                <li>
-                  <strong>EGI (Stabilised)</strong> = PGI x Stabilised Occupancy
-                </li>
-                <li>
-                  <strong>NOI</strong> = EGI - Opex + Utility Adj
-                </li>
-                <li>
-                  <strong>Value Range</strong> = (NOI / Cap High) to (NOI / Cap Low),
-                  then + Excess Land - Refurb
-                </li>
-              </ul>
-            </div>
-          </Card>
+            <Accordion type="single" collapsible className="w-full">
+              <AccordionItem value="formulas" className="border rounded-md px-4">
+                <AccordionTrigger className="text-xs font-medium py-3" data-testid="button-formulas-toggle">
+                  <span className="flex items-center gap-1.5">
+                    <Calculator className="w-3.5 h-3.5" />
+                    Formulas Reference
+                  </span>
+                </AccordionTrigger>
+                <AccordionContent>
+                  <ul className="text-xs text-muted-foreground space-y-1.5 pb-1">
+                    <li>
+                      <strong>PGI</strong> = Potential Monthly x 12
+                    </li>
+                    <li>
+                      <strong>Current Occupancy</strong> = Actual Annual Revenue / PGI
+                    </li>
+                    <li>
+                      <strong>EGI (Stabilised)</strong> = PGI x Stabilised Occupancy
+                    </li>
+                    <li>
+                      <strong>NOI</strong> = EGI - Opex + Utility Adj
+                    </li>
+                    <li>
+                      <strong>Value Range</strong> = (NOI / Cap High) to (NOI / Cap Low),
+                      then + Excess Land - Refurb
+                    </li>
+                  </ul>
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
+          </div>
         </div>
       </div>
     </div>
