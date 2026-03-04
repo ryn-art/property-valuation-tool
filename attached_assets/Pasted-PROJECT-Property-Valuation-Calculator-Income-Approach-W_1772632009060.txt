@@ -1,0 +1,108 @@
+PROJECT: Property Valuation Calculator (Income Approach) – Web App (South Africa)
+
+GOAL
+Build a simple, professional web app that calculates an indicated property value using the Income Approach:
+PGI → EGI → NOI → Value (NOI ÷ Cap Rate),
+with TWO scenarios:
+1) Stabilised Income (market/stabilised occupancy applied to potential income)
+2) Actual Income (uses actual 12-month revenue; NO additional vacancy applied)
+
+IMPORTANT BEHAVIOUR
+- Do NOT “double count” vacancy.
+- If the user provides Actual Annual Revenue, the app must derive current occupancy as:
+  Current Occupancy % = Actual Annual Revenue ÷ PGI
+- If the user selects “Actual scenario”, EGI used = Actual Annual Revenue (no vacancy factor applied)
+- If the user selects “Stabilised scenario”, EGI used = PGI × Stabilised Occupancy %
+
+CORE DEFINITIONS (PROPERTY VALUATION LANGUAGE)
+- Potential Gross Income (PGI): Income at 100% occupancy based on market rent assumptions.
+- Effective Gross Income (EGI): Income after vacancy/credit loss (or actual collected income).
+- Net Operating Income (NOI): EGI minus operating expenses (plus/minus any utility recovery adjustment).
+- Cap Rate (Yield): Required return; Value = NOI ÷ Cap Rate.
+- Value Range: Use cap rate LOW and HIGH to show a range (lower cap → higher value; higher cap → lower value).
+
+FORMULAS
+1) Potential Monthly Rent (PGI Monthly)
+   PGI_monthly = Σ(Area_i_m2 × Rate_i_R_per_m2_per_month) + OtherMonthlyIncome
+2) Potential Annual Rent (PGI Annual)
+   PGI_annual = PGI_monthly × 12
+3) Current Occupancy (derived, if Actual Annual Revenue entered)
+   CurrentOccupancy% = (ActualAnnualRevenue ÷ PGI_annual) × 100
+   CurrentVacancy% = 100 − CurrentOccupancy%
+   (Clamp to 0–100% for vacancy display; occupancy can be capped at 200% internally to handle messy inputs.)
+4) Stabilised EGI (Scenario A)
+   EGI_stabilised = PGI_annual × (StabilisedOccupancy% ÷ 100)
+5) Actual EGI (Scenario B)
+   EGI_actual = ActualAnnualRevenue
+   (No vacancy factor; actual revenue already reflects vacancy/collection reality.)
+6) NOI (both scenarios)
+   NOI = EGI_used − OperatingExpenses_annual + UtilityUnderOverRecovery_annual
+7) Value Range with cap rate band
+   capLow = CapLow% ÷ 100
+   capHigh = CapHigh% ÷ 100
+   ValueHigh = (NOI ÷ capLow) + ExcessLand − Refurb
+   ValueLow  = (NOI ÷ capHigh) + ExcessLand − Refurb
+   Display as Value Range: min(ValueLow, ValueHigh) to max(ValueLow, ValueHigh)
+
+USER INPUTS (UI)
+SECTION 1: Income Potential (PGI builder)
+- Repeatable rows:
+  - Description (text)
+  - Size m² (number)
+  - Rate R/m²/month (number)
+  - Computed Monthly line rent = size × rate
+- Other Monthly Income (optional, number)
+- Actual Annual Revenue (last 12 months) (optional, number)
+  (This is total collected rent for the last 12 months, not “potential”.)
+
+SECTION 2: Assumptions + Valuation
+- Property Type dropdown sets default stabilised occupancy:
+  Office: 88%
+  Retail: 92%
+  Industrial: 95%
+  Self-storage: 91%
+  Other: 90%
+- Stabilised Occupancy % (editable)
+- Scenario toggle:
+  - “Use Stabilised Income (PGI × stabilised occupancy)”
+  - “Use Actual Income (actual annual revenue)”
+- Operating Expenses (Annual) (number)
+- Net Utility Under/(Over) Recovery (Annual) (optional number; positive increases NOI, negative reduces)
+- Cap Rate Low (%) and Cap Rate High (%) (numbers)
+  - If user enters them backwards, swap automatically for calculation.
+- Plus: Expansion/Excess Land (optional, number)
+- Less: Refurb/Tenant installs (optional, number)
+
+OUTPUTS (DISPLAY)
+- Potential Gross Monthly (PGI monthly)
+- Potential Gross Annual (PGI annual)
+- Derived Current Occupancy % and Vacancy % (only if Actual Annual Revenue entered and PGI > 0)
+- “EGI used (Annual)” based on scenario selected
+- NOI (Annual)
+- Value Range (R low – R high) using cap rate band
+- Small note under results:
+  - Stabilised scenario: “Using stabilised income (PGI × X% occupancy).”
+  - Actual scenario: “Using actual annual revenue (no additional vacancy applied).”
+
+WARNINGS / VALIDATION
+- If Scenario = Actual AND ActualAnnualRevenue is 0 or blank:
+  show a warning: “Enter actual annual revenue to use Actual scenario.”
+  and set EGI_used = 0 (or fallback to stabilised; your choice—prefer warning + 0).
+- If ActualAnnualRevenue < PGI_annual, show an informational note:
+  “Actual revenue implies vacancy already exists; no additional vacancy is applied in Actual scenario.”
+- If cap rates are 0 or invalid, value range should show 0 and/or a warning.
+
+UX REQUIREMENTS
+- No backend required.
+- Single page app.
+- Recalculate live on input change.
+- Clean formatting for South African currency (en-ZA, 2 decimals).
+- “Add line” and “Remove” line functionality for income rows.
+
+OPTIONAL NICE-TO-HAVE (if quick)
+- “Reset” button to clear all inputs.
+- “Export summary” as printable view (basic, not essential).
+- Mobile responsive (stack cards in one column on small screens).
+
+DELIVERABLE
+A working web app with the above logic and UI, ready to deploy as a static site.

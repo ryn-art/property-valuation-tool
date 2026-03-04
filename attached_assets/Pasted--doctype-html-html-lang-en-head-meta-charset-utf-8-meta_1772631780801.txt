@@ -1,0 +1,382 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Property Valuation Calculator (Income Approach)</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 1080px; margin: 24px auto; padding: 0 16px; }
+    h1 { font-size: 20px; margin: 0 0 6px; }
+    .grid { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 16px; }
+    .card { border: 1px solid #ddd; border-radius: 12px; padding: 14px; }
+    label { display:block; font-size: 12px; margin-top: 10px; color:#333; }
+    input, select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 10px; }
+    button { margin-top: 12px; padding: 10px 12px; border: 0; border-radius: 10px; cursor: pointer; }
+    table { width:100%; border-collapse: collapse; margin-top: 10px; }
+    th, td { border-bottom: 1px solid #eee; padding: 8px; font-size: 13px; text-align: left; vertical-align: top; }
+    .muted { color:#666; font-size: 12px; }
+    .out { font-size: 18px; font-weight: bold; margin-top: 10px; }
+    .row { display:flex; gap:10px; align-items:flex-end; }
+    .row > * { flex:1; }
+    .small { flex:0.7; }
+    .tiny { flex:0.55; }
+    .pill { display:inline-block; padding:4px 8px; border:1px solid #ddd; border-radius:999px; font-size:12px; color:#333; background:#fafafa; }
+    .divider { height:1px; background:#eee; margin: 12px 0; }
+    .kpi { display:grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+    .kpi .box { border:1px solid #eee; border-radius: 12px; padding: 10px; }
+    .kpi .label { font-size: 12px; color:#666; }
+    .kpi .val { font-size: 16px; font-weight: 700; margin-top: 4px; }
+    .help { font-size: 12px; color:#555; margin-top: 8px; line-height: 1.35; }
+    .warn { font-size: 12px; color:#7a4b00; background:#fff8e7; border:1px solid #ffe2b1; padding:10px; border-radius:12px; margin-top:10px; }
+    .good { font-size: 12px; color:#1b5e20; background:#eef8f0; border:1px solid #cfead4; padding:10px; border-radius:12px; margin-top:10px; }
+  </style>
+</head>
+<body>
+  <h1>Property Valuation Calculator (Income Approach)</h1>
+  <div class="muted">
+    Indicative only. Use evidence (rent comparables + sales/cap evidence) to support assumptions.
+    <span class="pill">PGI → EGI → NOI → Value</span>
+  </div>
+
+  <div class="grid" style="margin-top:16px;">
+    <!-- LEFT: INCOME INPUTS -->
+    <div class="card">
+      <h2 style="font-size:16px;margin:0 0 6px;">1) Income Potential (PGI)</h2>
+      <div class="muted">Build your <b>Potential Gross Income</b> at 100% occupancy from areas/rates (plus other monthly income).</div>
+
+      <div class="row" style="margin-top:10px;">
+        <div>
+          <label>Description</label>
+          <input id="desc" placeholder="e.g., Office Area" />
+        </div>
+        <div class="tiny">
+          <label>Size (m²)</label>
+          <input id="size" type="number" min="0" step="0.01" placeholder="0" />
+        </div>
+        <div class="tiny">
+          <label>Rate (R/m²/month)</label>
+          <input id="rate" type="number" min="0" step="0.01" placeholder="0" />
+        </div>
+      </div>
+
+      <button onclick="addLine()">Add line</button>
+
+      <table id="linesTable">
+        <thead>
+          <tr>
+            <th>Description</th>
+            <th>m²</th>
+            <th>R/m²</th>
+            <th>Monthly (R)</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+
+      <div class="row" style="margin-top:10px;">
+        <div>
+          <label>Other Monthly Income (R) (optional)</label>
+          <input id="otherMonthly" type="number" min="0" step="0.01" value="0" />
+        </div>
+        <div>
+          <label>Actual Rental Revenue (last 12 months) (optional)</label>
+          <input id="actualAnnualRev" type="number" min="0" step="0.01" value="0" />
+        </div>
+      </div>
+
+      <div class="kpi">
+        <div class="box">
+          <div class="label">Potential Gross Monthly (100%)</div>
+          <div class="val" id="pgiMonthlyOut">R 0.00</div>
+        </div>
+        <div class="box">
+          <div class="label">Potential Gross Annual (PGI)</div>
+          <div class="val" id="pgiAnnualOut">R 0.00</div>
+        </div>
+      </div>
+
+      <div class="kpi">
+        <div class="box">
+          <div class="label">Derived Current Occupancy (from actual revenue)</div>
+          <div class="val" id="currentOccOut">—</div>
+        </div>
+        <div class="box">
+          <div class="label">Derived Current Vacancy</div>
+          <div class="val" id="currentVacOut">—</div>
+        </div>
+      </div>
+
+      <div class="help">
+        <b>How occupancy is derived:</b> Current Occupancy = Actual Annual Revenue ÷ Potential Gross Annual (PGI).  
+        If you don't enter actual revenue, the calculator will skip this and just use your stabilised assumption.
+      </div>
+
+      <div id="doubleVacancyWarning" class="warn" style="display:none;">
+        Your <b>actual annual revenue</b> is already below PGI, which implies vacancy already exists.
+        This calculator will <b>not</b> apply vacancy on the “Actual” scenario (to avoid double vacancy).
+      </div>
+    </div>
+
+    <!-- RIGHT: ASSUMPTIONS + OUTPUT -->
+    <div class="card">
+      <h2 style="font-size:16px;margin:0 0 6px;">2) Assumptions + Value</h2>
+
+      <label>Property Type (sets a sensible stabilised occupancy default)</label>
+      <select id="propertyType" onchange="applyDefaults(); recalc();">
+        <option value="office">Office</option>
+        <option value="retail">Retail</option>
+        <option value="industrial">Industrial</option>
+        <option value="storage">Self-storage</option>
+        <option value="other">Other</option>
+      </select>
+
+      <div class="row">
+        <div>
+          <label>Stabilised Occupancy (%)</label>
+          <input id="stabilisedOccPct" type="number" min="0" max="100" step="0.01" value="90" />
+        </div>
+        <div>
+          <label>Scenario</label>
+          <select id="scenario" onchange="recalc();">
+            <option value="stabilised">Use Stabilised Income (PGI × stabilised occupancy)</option>
+            <option value="actual">Use Actual Income (actual annual revenue)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <label>Operating Expenses (Annual) (R)</label>
+      <input id="opexAnnual" type="number" min="0" step="0.01" value="0" />
+
+      <label>Net Utility Under/(Over) Recovery (Annual) (R) (optional)</label>
+      <input id="utilityAdj" type="number" step="0.01" value="0" />
+
+      <div class="divider"></div>
+
+      <div class="row">
+        <div>
+          <label>Cap Rate Low (%)</label>
+          <input id="capLowPct" type="number" min="0.01" max="100" step="0.01" value="12.0" />
+        </div>
+        <div>
+          <label>Cap Rate High (%)</label>
+          <input id="capHighPct" type="number" min="0.01" max="100" step="0.01" value="13.5" />
+        </div>
+      </div>
+
+      <div class="row">
+        <div>
+          <label>Plus: Expansion / Excess Land (R) (optional)</label>
+          <input id="excessLand" type="number" min="0" step="0.01" value="0" />
+        </div>
+        <div>
+          <label>Less: Refurb / Tenant Installs (R) (optional)</label>
+          <input id="refurb" type="number" min="0" step="0.01" value="0" />
+        </div>
+      </div>
+
+      <button onclick="recalc()">Recalculate</button>
+
+      <div class="kpi">
+        <div class="box">
+          <div class="label">Effective Gross Income Used (Annual)</div>
+          <div class="val" id="egiUsedOut">R 0.00</div>
+        </div>
+        <div class="box">
+          <div class="label">NOI (Annual)</div>
+          <div class="val" id="noiOut">R 0.00</div>
+        </div>
+      </div>
+
+      <div class="out" id="valueRangeOut">Value Range: R 0.00 – R 0.00</div>
+      <div class="muted" id="valueNoteOut">Using stabilised income and cap range.</div>
+
+      <div id="actualScenarioNote" class="good" style="display:none;">
+        <b>Actual scenario:</b> Value is based on <b>actual annual revenue</b> (no additional vacancy applied).
+      </div>
+
+      <div class="muted" style="margin-top:10px;">
+        Formulas:
+        <ul>
+          <li><b>PGI</b> = Potential Monthly × 12</li>
+          <li><b>Current Occupancy</b> = Actual Annual Revenue ÷ PGI (if provided)</li>
+          <li><b>EGI (Stabilised)</b> = PGI × Stabilised Occupancy</li>
+          <li><b>NOI</b> = EGI − Opex + Utility Adj</li>
+          <li><b>Value Range</b> = (NOI ÷ Cap High) to (NOI ÷ Cap Low), then + Excess Land − Refurb</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+<script>
+  const lines = [];
+
+  function money(n) {
+    const x = Number(n || 0);
+    return x.toLocaleString("en-ZA", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  function pct(n) {
+    const x = Number(n || 0);
+    return `${x.toFixed(2)}%`;
+  }
+
+  function clamp(x, min, max) {
+    return Math.min(Math.max(x, min), max);
+  }
+
+  function applyDefaults() {
+    const type = document.getElementById("propertyType").value;
+    // sensible defaults (you can edit these)
+    const defaults = {
+      office: 88,
+      retail: 92,
+      industrial: 95,
+      storage: 91,
+      other: 90
+    };
+    document.getElementById("stabilisedOccPct").value = defaults[type] ?? 90;
+  }
+
+  function addLine() {
+    const desc = document.getElementById("desc").value.trim() || "Rentable Area";
+    const size = Number(document.getElementById("size").value || 0);
+    const rate = Number(document.getElementById("rate").value || 0);
+
+    if (size <= 0 || rate < 0) return;
+
+    lines.push({ desc, size, rate });
+    document.getElementById("desc").value = "";
+    document.getElementById("size").value = "";
+    document.getElementById("rate").value = "";
+    render();
+    recalc();
+  }
+
+  function removeLine(i) {
+    lines.splice(i, 1);
+    render();
+    recalc();
+  }
+
+  function render() {
+    const tbody = document.querySelector("#linesTable tbody");
+    tbody.innerHTML = "";
+    lines.forEach((l, i) => {
+      const monthly = l.size * l.rate;
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${l.desc}</td>
+        <td>${money(l.size)}</td>
+        <td>${money(l.rate)}</td>
+        <td>${money(monthly)}</td>
+        <td><button onclick="removeLine(${i})">Remove</button></td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  function recalc() {
+    const otherMonthly = Number(document.getElementById("otherMonthly").value || 0);
+
+    const pgiMonthly =
+      lines.reduce((sum, l) => sum + (l.size * l.rate), 0) + otherMonthly;
+
+    const pgiAnnual = pgiMonthly * 12;
+
+    document.getElementById("pgiMonthlyOut").textContent = `R ${money(pgiMonthly)}`;
+    document.getElementById("pgiAnnualOut").textContent = `R ${money(pgiAnnual)}`;
+
+    // Actual annual revenue & derived occupancy
+    const actualAnnualRev = Number(document.getElementById("actualAnnualRev").value || 0);
+    let derivedOcc = null;
+
+    if (pgiAnnual > 0 && actualAnnualRev > 0) {
+      derivedOcc = clamp((actualAnnualRev / pgiAnnual) * 100, 0, 200); // allow >100 if data is messy
+      document.getElementById("currentOccOut").textContent = pct(derivedOcc);
+      document.getElementById("currentVacOut").textContent = pct(clamp(100 - derivedOcc, 0, 100));
+    } else {
+      document.getElementById("currentOccOut").textContent = "—";
+      document.getElementById("currentVacOut").textContent = "—";
+    }
+
+    // Assumptions
+    const stabilisedOccPct = clamp(Number(document.getElementById("stabilisedOccPct").value || 0), 0, 100);
+    const opexAnnual = Number(document.getElementById("opexAnnual").value || 0);
+    const utilityAdj = Number(document.getElementById("utilityAdj").value || 0);
+
+    const capLow = Number(document.getElementById("capLowPct").value || 0) / 100;
+    const capHigh = Number(document.getElementById("capHighPct").value || 0) / 100;
+
+    // swap if user entered backwards
+    let capMin = Math.min(capLow, capHigh);
+    let capMax = Math.max(capLow, capHigh);
+
+    const excessLand = Number(document.getElementById("excessLand").value || 0);
+    const refurb = Number(document.getElementById("refurb").value || 0);
+
+    // Scenario selection
+    const scenario = document.getElementById("scenario").value;
+
+    // Compute EGI used
+    let egiUsed = 0;
+    let valueNote = "";
+    let showActualNote = false;
+
+    // warning about double vacancy (informational)
+    const warnEl = document.getElementById("doubleVacancyWarning");
+    warnEl.style.display = "none";
+
+    if (scenario === "actual") {
+      egiUsed = actualAnnualRev; // by definition: already includes vacancy/collection reality
+      valueNote = "Using actual annual revenue (no additional vacancy applied).";
+      showActualNote = true;
+
+      if (actualAnnualRev > 0 && pgiAnnual > 0 && actualAnnualRev < pgiAnnual) {
+        warnEl.style.display = "block";
+      }
+    } else {
+      // stabilised
+      egiUsed = pgiAnnual * (stabilisedOccPct / 100);
+      valueNote = `Using stabilised income (PGI × ${pct(stabilisedOccPct)}).`;
+      showActualNote = false;
+    }
+
+    document.getElementById("egiUsedOut").textContent = `R ${money(egiUsed)}`;
+
+    // NOI
+    const noi = egiUsed - opexAnnual + utilityAdj;
+    document.getElementById("noiOut").textContent = `R ${money(noi)}`;
+
+    // Value range (cap higher => lower value)
+    let vLow = 0, vHigh = 0;
+    if (capMin > 0 && capMax > 0) {
+      // vHigh uses lower cap; vLow uses higher cap
+      vHigh = (noi / capMin) + excessLand - refurb;
+      vLow = (noi / capMax) + excessLand - refurb;
+    }
+
+    // format
+    const lo = Math.min(vLow, vHigh);
+    const hi = Math.max(vLow, vHigh);
+
+    document.getElementById("valueRangeOut").textContent =
+      `Value Range: R ${money(lo)} – R ${money(hi)}`;
+
+    document.getElementById("valueNoteOut").textContent = valueNote;
+
+    const actualNoteEl = document.getElementById("actualScenarioNote");
+    actualNoteEl.style.display = showActualNote ? "block" : "none";
+  }
+
+  // Recalc on typing for convenience
+  ["otherMonthly","actualAnnualRev","stabilisedOccPct","opexAnnual","utilityAdj","capLowPct","capHighPct","excessLand","refurb"]
+    .forEach(id => document.getElementById(id).addEventListener("input", recalc));
+
+  applyDefaults();
+  recalc();
+</script>
+</body>
+</html>
