@@ -286,3 +286,25 @@
     inset: -1px;
   }
 }
+
+@media print {
+  body {
+    background: white !important;
+    color: black !important;
+    font-size: 11pt;
+  }
+
+  .print\:hidden {
+    display: none !important;
+  }
+
+  #print-area {
+    display: block !important;
+    width: 100% !important;
+  }
+
+  #print-area > * {
+    break-inside: avoid;
+    margin-bottom: 12pt;
+  }
+}

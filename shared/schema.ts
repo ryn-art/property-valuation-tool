@@ -26,9 +26,33 @@ export const incomeLineSchema = z.object({
 
 export type IncomeLine = z.infer<typeof incomeLineSchema>;
 
+export const roomTypeSchema = z.object({
+  id: z.number(),
+  name: z.string(),
+  rooms: z.number(),
+  sizeSqm: z.number(),
+});
+
+export type RoomType = z.infer<typeof roomTypeSchema>;
+
+export const seasonSchema = z.object({
+  id: z.number(),
+  name: z.string(),
+  startDate: z.string(),
+  endDate: z.string(),
+  occupancyPct: z.number(),
+});
+
+export type Season = z.infer<typeof seasonSchema>;
+
+export const rateMatrixSchema = z.record(z.string(), z.number());
+
+export type RateMatrix = z.infer<typeof rateMatrixSchema>;
+
 export const valuations = pgTable("valuations", {
   id: serial("id").primaryKey(),
   name: text("name").notNull().default("Untitled Valuation"),
+  incomeModel: text("income_model").notNull().default("rental"),
   propertyType: text("property_type").notNull().default("office"),
   lines: jsonb("lines").notNull().default([]),
   otherMonthly: real("other_monthly").notNull().default(0),
@@ -41,6 +65,10 @@ export const valuations = pgTable("valuations", {
   capHighPct: real("cap_high_pct").notNull().default(13.5),
   excessLand: real("excess_land").notNull().default(0),
   refurb: real("refurb").notNull().default(0),
+  roomTypes: jsonb("room_types").notNull().default([]),
+  seasons: jsonb("seasons").notNull().default([]),
+  rateMatrix: jsonb("rate_matrix").notNull().default({}),
+  otherAnnualIncome: real("other_annual_income").notNull().default(0),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
@@ -52,8 +80,13 @@ export const insertValuationSchema = createInsertSchema(valuations).omit({
 }).extend({
   lines: z.array(incomeLineSchema).default([]),
   name: z.string().min(1).default("Untitled Valuation"),
+  incomeModel: z.enum(["rental", "hospitality"]).default("rental"),
   propertyType: z.enum(["office", "retail", "industrial", "storage", "other"]).default("office"),
   scenario: z.enum(["stabilised", "actual"]).default("stabilised"),
+  roomTypes: z.array(roomTypeSchema).default([]),
+  seasons: z.array(seasonSchema).default([]),
+  rateMatrix: rateMatrixSchema.default({}),
+  otherAnnualIncome: z.number().default(0),
 });
 
 export type InsertValuation = z.infer<typeof insertValuationSchema>;
