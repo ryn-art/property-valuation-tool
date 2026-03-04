@@ -730,6 +730,32 @@ export default function CalculatorHospitality({ state, setters, nextId, setNextI
           </p>
         </div>
 
+        {(() => {
+          const cL = Number(capLowPct || 0);
+          const cH = Number(capHighPct || 0);
+          if (cL <= 0 || cH <= 0) return null;
+          const yieldLo = Math.min(cL, cH);
+          const yieldHi = Math.max(cL, cH);
+          const paybackLo = 1 / (yieldHi / 100);
+          const paybackHi = 1 / (yieldLo / 100);
+          return (
+            <div className="grid grid-cols-2 gap-3" data-testid="card-hosp-yield-payback">
+              <Card className="p-3">
+                <p className="text-[11px] text-muted-foreground">Implied Yield</p>
+                <p className="text-sm font-semibold tabular-nums mt-0.5" data-testid="text-hosp-implied-yield">
+                  {yieldLo.toFixed(1)}% – {yieldHi.toFixed(1)}%
+                </p>
+              </Card>
+              <Card className="p-3">
+                <p className="text-[11px] text-muted-foreground">Payback Period</p>
+                <p className="text-sm font-semibold tabular-nums mt-0.5" data-testid="text-hosp-payback-period">
+                  {paybackLo.toFixed(1)} – {paybackHi.toFixed(1)} years
+                </p>
+              </Card>
+            </div>
+          );
+        })()}
+
         <div className="flex justify-end">
           <Button variant="outline" size="sm" onClick={() => window.print()} data-testid="button-print-hosp">
             <Printer className="w-3.5 h-3.5 mr-1.5" />

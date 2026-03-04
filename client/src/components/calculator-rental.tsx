@@ -418,6 +418,32 @@ export default function CalculatorRental({ state, setters, nextId, setNextId }: 
           <p className="text-xs mt-2 opacity-75" data-testid="text-value-note">{calc.valueNote}</p>
         </div>
 
+        {(() => {
+          const cL = Number(capLowPct || 0);
+          const cH = Number(capHighPct || 0);
+          if (cL <= 0 || cH <= 0) return null;
+          const yieldLo = Math.min(cL, cH);
+          const yieldHi = Math.max(cL, cH);
+          const paybackLo = 1 / (yieldHi / 100);
+          const paybackHi = 1 / (yieldLo / 100);
+          return (
+            <div className="grid grid-cols-2 gap-3" data-testid="card-yield-payback">
+              <Card className="p-3">
+                <p className="text-[11px] text-muted-foreground">Implied Yield</p>
+                <p className="text-sm font-semibold tabular-nums mt-0.5" data-testid="text-implied-yield">
+                  {yieldLo.toFixed(1)}% – {yieldHi.toFixed(1)}%
+                </p>
+              </Card>
+              <Card className="p-3">
+                <p className="text-[11px] text-muted-foreground">Payback Period</p>
+                <p className="text-sm font-semibold tabular-nums mt-0.5" data-testid="text-payback-period">
+                  {paybackLo.toFixed(1)} – {paybackHi.toFixed(1)} years
+                </p>
+              </Card>
+            </div>
+          );
+        })()}
+
         {calc.showActualNote && !calc.showActualWarning && (
           <div className="flex items-start gap-2.5 text-xs p-3.5 rounded-md bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-200" data-testid="note-actual-scenario">
             <CheckCircle2 className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" />
