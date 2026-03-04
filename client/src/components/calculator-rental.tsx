@@ -473,6 +473,8 @@ export default function CalculatorRental({ state, setters, nextId, setNextId }: 
                 <li><strong>EGI (Stabilised)</strong> = PGI x Stabilised Occupancy</li>
                 <li><strong>NOI</strong> = EGI - Opex + Utility Adj</li>
                 <li><strong>Value Range</strong> = (NOI / Cap High) to (NOI / Cap Low), then + Excess Land - Refurb</li>
+                <li><strong>Implied Yield</strong> = Cap Rate Low% – Cap Rate High%</li>
+                <li><strong>Payback Period</strong> = (1 ÷ Cap Rate High) – (1 ÷ Cap Rate Low) in years</li>
               </ul>
             </AccordionContent>
           </AccordionItem>

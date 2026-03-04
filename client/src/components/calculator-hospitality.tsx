@@ -782,6 +782,8 @@ export default function CalculatorHospitality({ state, setters, nextId, setNextI
                 <li><strong>Value Range</strong> = (NOI / Cap High) to (NOI / Cap Low), then + Excess Land - Refurb</li>
                 <li><strong>Weighted ADR</strong> = Annual Room Revenue / Total Occupied Room Nights</li>
                 <li><strong>Weighted Occ</strong> = Total Occupied RN / Total Available RN</li>
+                <li><strong>Implied Yield</strong> = Cap Rate Low% – Cap Rate High%</li>
+                <li><strong>Payback Period</strong> = (1 ÷ Cap Rate High) – (1 ÷ Cap Rate Low) in years</li>
               </ul>
             </AccordionContent>
           </AccordionItem>
