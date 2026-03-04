@@ -367,6 +367,75 @@ export default function CalculatorPage() {
                     </p>
                   </Card>
                 </div>
+
+                {isListLoading ? (
+                  <div className="w-full max-w-2xl mt-10 space-y-2">
+                    <h3 className="text-sm font-semibold mb-3">Saved Valuations</h3>
+                    <Skeleton className="h-14 w-full" />
+                    <Skeleton className="h-14 w-full" />
+                  </div>
+                ) : valuationsList && valuationsList.length > 0 && (
+                  <div className="w-full max-w-2xl mt-10">
+                    <h3 className="text-sm font-semibold mb-3" data-testid="text-saved-heading">Saved Valuations</h3>
+                    <Card className="divide-y">
+                      {valuationsList.map((v) => (
+                        <div
+                          key={v.id}
+                          role="button"
+                          tabIndex={0}
+                          data-testid={`card-home-valuation-${v.id}`}
+                          className="group flex items-center justify-between gap-3 px-4 py-3 cursor-pointer transition-colors hover:bg-muted/50"
+                          onClick={() => loadValuation(v)}
+                          onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); loadValuation(v); } }}
+                        >
+                          <div className="min-w-0">
+                            <p className="text-sm font-medium truncate" data-testid={`text-home-valuation-name-${v.id}`}>
+                              {v.name}
+                            </p>
+                            <div className="text-[11px] text-muted-foreground mt-0.5 flex items-center flex-wrap gap-x-1">
+                              <Badge variant="outline" className="text-[9px] px-1 py-0 no-default-active-elevate">
+                                {v.incomeModel === "hospitality" ? "Hospitality" : "Rental"}
+                              </Badge>
+                              <span>
+                                {v.incomeModel !== "hospitality" && (PROPERTY_LABELS[v.propertyType as PropertyType] || v.propertyType)}
+                                {" · "}
+                                {formatDate(v.updatedAt)}
+                              </span>
+                            </div>
+                          </div>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                className="opacity-0 group-hover:opacity-100 flex-shrink-0 h-8 w-8"
+                                aria-label={`Delete ${v.name}`}
+                                data-testid={`button-home-delete-${v.id}`}
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <Trash2 className="w-3.5 h-3.5 text-destructive" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Delete valuation?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  This will permanently delete "{v.name}". This action cannot be undone.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => deleteMutation.mutate(v.id)} data-testid={`button-home-confirm-delete-${v.id}`}>
+                                  Delete
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
+                      ))}
+                    </Card>
+                  </div>
+                )}
               </div>
             ) : (
               <>
