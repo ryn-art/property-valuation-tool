@@ -138,7 +138,7 @@ function valuationBox(doc: jsPDF, lo: number, hi: number, yieldStr: string, payb
   setFill(doc, BLUE_LIGHT);
   setDrawColor(doc, BLUE);
   doc.setLineWidth(0.4);
-  doc.roundedRect(MARGIN, y, CONTENT_W, 26, 2, 2, "FD");
+  doc.roundedRect(MARGIN, y, CONTENT_W, 34, 2, 2, "FD");
 
   doc.setFont("helvetica", "bold");
   doc.setFontSize(7.5);
@@ -152,22 +152,22 @@ function valuationBox(doc: jsPDF, lo: number, hi: number, yieldStr: string, payb
 
   setDrawColor(doc, DIVIDER);
   doc.setLineWidth(0.3);
-  doc.line(MARGIN + 4, y + 18, PAGE_W - MARGIN - 4, y + 18);
+  doc.line(MARGIN + 4, y + 20, PAGE_W - MARGIN - 4, y + 20);
 
   const col = CONTENT_W / 2;
   doc.setFont("helvetica", "normal");
   doc.setFontSize(7.5);
   setTextColor(doc, MUTED);
-  doc.text("Implied Yield", MARGIN + 4, y + 22);
-  doc.text("Payback Period", MARGIN + 4 + col, y + 22);
+  doc.text("Implied Yield", MARGIN + 4, y + 25);
+  doc.text("Payback Period", MARGIN + 4 + col, y + 25);
 
   doc.setFont("helvetica", "bold");
   doc.setFontSize(9);
   setTextColor(doc, TEXT);
-  doc.text(yieldStr, MARGIN + 4, y + 26.5);
-  doc.text(paybackStr, MARGIN + 4 + col, y + 26.5);
+  doc.text(yieldStr, MARGIN + 4, y + 31);
+  doc.text(paybackStr, MARGIN + 4 + col, y + 31);
 
-  return y + 32;
+  return y + 39;
 }
 
 export function exportRentalPDF(
@@ -262,6 +262,7 @@ export function exportRentalPDF(
       ? `${(1 / (yieldHi / 100)).toFixed(1)} – ${(1 / (yieldLo / 100)).toFixed(1)} years`
       : "—";
 
+  if (y > PAGE_H - 50) { doc.addPage(); y = 16; }
   y = valuationBox(doc, calc.lo, calc.hi, yieldStr, paybackStr, y);
 
   doc.setFont("helvetica", "italic");
@@ -475,6 +476,7 @@ export function exportHospitalityPDF(
       ? `${(1 / (yieldHi / 100)).toFixed(1)} – ${(1 / (yieldLo / 100)).toFixed(1)} years`
       : "—";
 
+  if (y > PAGE_H - 50) { doc.addPage(); y = 16; }
   valuationBox(doc, calc.lo, calc.hi, yieldStr, paybackStr, y);
 
   drawFooter(doc, doc.getNumberOfPages());
