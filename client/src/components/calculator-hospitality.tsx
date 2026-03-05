@@ -28,10 +28,11 @@ import {
   Calculator,
   BedDouble,
   CalendarDays,
-  Printer,
+  FileDown,
   CalendarIcon,
 } from "lucide-react";
 import { StepBadge, KpiCard, money, pct } from "./calculator-shared";
+import { exportHospitalityPDF } from "@/lib/pdf-export";
 import { cn } from "@/lib/utils";
 import type { RoomType, Season, RateMatrix } from "@shared/schema";
 
@@ -131,6 +132,7 @@ interface Props {
   setters: HospitalityCalcSetters;
   nextId: number;
   setNextId: (fn: number | ((n: number) => number)) => void;
+  valuationName: string;
 }
 
 function getNights(startDate: string, endDate: string): number {
@@ -146,7 +148,7 @@ function rateKey(roomTypeId: number, seasonId: number): string {
   return `${roomTypeId}-${seasonId}`;
 }
 
-export default function CalculatorHospitality({ state, setters, nextId, setNextId }: Props) {
+export default function CalculatorHospitality({ state, setters, nextId, setNextId, valuationName }: Props) {
   const {
     roomTypes, seasons, rateMatrix, otherAnnualIncome, actualAnnualRev,
     opexAnnual, utilityAdj, capLowPct, capHighPct, excessLand, refurb,
@@ -757,9 +759,9 @@ export default function CalculatorHospitality({ state, setters, nextId, setNextI
         })()}
 
         <div className="flex justify-end">
-          <Button variant="outline" size="sm" onClick={() => window.print()} data-testid="button-print-hosp">
-            <Printer className="w-3.5 h-3.5 mr-1.5" />
-            Print Summary
+          <Button variant="outline" size="sm" onClick={() => exportHospitalityPDF(valuationName, state, calc)} data-testid="button-export-pdf-hosp">
+            <FileDown className="w-3.5 h-3.5 mr-1.5" />
+            Export PDF
           </Button>
         </div>
 

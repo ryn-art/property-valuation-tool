@@ -33,9 +33,10 @@ import {
   Info,
   ListPlus,
   Calculator,
-  Printer,
+  FileDown,
 } from "lucide-react";
 import { StepBadge, KpiCard, money, pct, clamp } from "./calculator-shared";
+import { exportRentalPDF } from "@/lib/pdf-export";
 import type { IncomeLine } from "@shared/schema";
 
 type PropertyType = "office" | "retail" | "industrial" | "storage" | "other";
@@ -92,9 +93,10 @@ interface Props {
   setters: RentalCalcSetters;
   nextId: number;
   setNextId: (fn: number | ((n: number) => number)) => void;
+  valuationName: string;
 }
 
-export default function CalculatorRental({ state, setters, nextId, setNextId }: Props) {
+export default function CalculatorRental({ state, setters, nextId, setNextId, valuationName }: Props) {
   const [desc, setDesc] = useState("");
   const [size, setSize] = useState("");
   const [rate, setRate] = useState("");
@@ -452,9 +454,9 @@ export default function CalculatorRental({ state, setters, nextId, setNextId }: 
         )}
 
         <div className="flex justify-end">
-          <Button variant="outline" size="sm" onClick={() => window.print()} data-testid="button-print">
-            <Printer className="w-3.5 h-3.5 mr-1.5" />
-            Print Summary
+          <Button variant="outline" size="sm" onClick={() => exportRentalPDF(valuationName, state, calc)} data-testid="button-export-pdf">
+            <FileDown className="w-3.5 h-3.5 mr-1.5" />
+            Export PDF
           </Button>
         </div>
 

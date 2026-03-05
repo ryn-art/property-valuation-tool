@@ -588,9 +588,9 @@ export default function CalculatorPage() {
                 </p>
 
                 {incomeModel === "rental" ? (
-                  <CalculatorRental state={rentalState} setters={rentalSetters} nextId={nextId} setNextId={setNextId} />
+                  <CalculatorRental state={rentalState} setters={rentalSetters} nextId={nextId} setNextId={setNextId} valuationName={valuationName} />
                 ) : (
-                  <CalculatorHospitality state={hospState} setters={hospSetters} nextId={nextId} setNextId={setNextId} />
+                  <CalculatorHospitality state={hospState} setters={hospSetters} nextId={nextId} setNextId={setNextId} valuationName={valuationName} />
                 )}
               </>
             )}
