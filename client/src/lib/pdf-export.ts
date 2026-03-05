@@ -301,11 +301,11 @@ export function exportHospitalityPDF(
     actualRev: number;
     performancePct: number | null;
     seasonBreakdown: {
-      id: number;
+      seasonId: number;
       name: string;
       nights: number;
-      availRN: number;
-      occRN: number;
+      availableRoomNights: number;
+      occupiedRoomNights: number;
       revenue: number;
     }[];
   },
@@ -404,15 +404,15 @@ export function exportHospitalityPDF(
       body: calc.seasonBreakdown.map((s) => [
         s.name,
         s.nights.toLocaleString("en-ZA"),
-        s.availRN.toLocaleString("en-ZA"),
-        s.occRN.toLocaleString("en-ZA"),
+        s.availableRoomNights.toLocaleString("en-ZA"),
+        s.occupiedRoomNights.toLocaleString("en-ZA"),
         fmtMoney(s.revenue),
       ]),
       foot: [[
         "Total",
         calc.seasonBreakdown.reduce((a, s) => a + s.nights, 0).toLocaleString("en-ZA"),
-        calc.seasonBreakdown.reduce((a, s) => a + s.availRN, 0).toLocaleString("en-ZA"),
-        calc.seasonBreakdown.reduce((a, s) => a + s.occRN, 0).toLocaleString("en-ZA"),
+        calc.seasonBreakdown.reduce((a, s) => a + s.availableRoomNights, 0).toLocaleString("en-ZA"),
+        calc.seasonBreakdown.reduce((a, s) => a + s.occupiedRoomNights, 0).toLocaleString("en-ZA"),
         fmtMoney(calc.annualRoomRevenue),
       ]],
       margin: { left: MARGIN, right: MARGIN },
