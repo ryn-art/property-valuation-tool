@@ -350,7 +350,7 @@ export function exportHospitalityPDF(
     headStyles: { fillColor: hexToRgb(NAV), textColor: hexToRgb(WHITE), fontStyle: "bold", fontSize: 8 },
     footStyles: { fillColor: hexToRgb(GREY_ROW), textColor: hexToRgb(TEXT), fontStyle: "bold", fontSize: 8 },
     alternateRowStyles: { fillColor: hexToRgb(GREY_ROW) },
-    columnStyles: { 1: { halign: "right" }, 2: { halign: "right" }, 3: { halign: "right" } },
+    columnStyles: { 1: { halign: "center" }, 2: { halign: "center" }, 3: { halign: "center" } },
   });
   y = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 8;
 
@@ -371,7 +371,7 @@ export function exportHospitalityPDF(
     styles: { fontSize: 8, cellPadding: 2.5, textColor: hexToRgb(TEXT) },
     headStyles: { fillColor: hexToRgb(NAV), textColor: hexToRgb(WHITE), fontStyle: "bold", fontSize: 8 },
     alternateRowStyles: { fillColor: hexToRgb(GREY_ROW) },
-    columnStyles: { 3: { halign: "right" }, 4: { halign: "right" } },
+    columnStyles: { 3: { halign: "center" }, 4: { halign: "center" } },
   });
   y = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 8;
 
@@ -421,7 +421,7 @@ export function exportHospitalityPDF(
       headStyles: { fillColor: hexToRgb(NAV), textColor: hexToRgb(WHITE), fontStyle: "bold", fontSize: 8 },
       footStyles: { fillColor: hexToRgb(GREY_ROW), textColor: hexToRgb(TEXT), fontStyle: "bold", fontSize: 8 },
       alternateRowStyles: { fillColor: hexToRgb(GREY_ROW) },
-      columnStyles: { 1: { halign: "right" }, 2: { halign: "right" }, 3: { halign: "right" }, 4: { halign: "right" } },
+      columnStyles: { 1: { halign: "center" }, 2: { halign: "center" }, 3: { halign: "center" }, 4: { halign: "right" } },
     });
     y = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 8;
   }
