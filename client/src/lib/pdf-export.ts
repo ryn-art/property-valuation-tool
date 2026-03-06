@@ -350,7 +350,9 @@ export function exportHospitalityPDF(
     headStyles: { fillColor: hexToRgb(NAV), textColor: hexToRgb(WHITE), fontStyle: "bold", fontSize: 8 },
     footStyles: { fillColor: hexToRgb(GREY_ROW), textColor: hexToRgb(TEXT), fontStyle: "bold", fontSize: 8 },
     alternateRowStyles: { fillColor: hexToRgb(GREY_ROW) },
-    columnStyles: { 1: { halign: "center" }, 2: { halign: "center" }, 3: { halign: "center" } },
+    didParseCell: (data) => {
+      if ([1, 2, 3].includes(data.column.index)) data.cell.styles.halign = "center";
+    },
   });
   y = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 8;
 
@@ -371,7 +373,9 @@ export function exportHospitalityPDF(
     styles: { fontSize: 8, cellPadding: 2.5, textColor: hexToRgb(TEXT) },
     headStyles: { fillColor: hexToRgb(NAV), textColor: hexToRgb(WHITE), fontStyle: "bold", fontSize: 8 },
     alternateRowStyles: { fillColor: hexToRgb(GREY_ROW) },
-    columnStyles: { 3: { halign: "center" }, 4: { halign: "center" } },
+    didParseCell: (data) => {
+      if ([3, 4].includes(data.column.index)) data.cell.styles.halign = "center";
+    },
   });
   y = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 8;
 
@@ -421,7 +425,10 @@ export function exportHospitalityPDF(
       headStyles: { fillColor: hexToRgb(NAV), textColor: hexToRgb(WHITE), fontStyle: "bold", fontSize: 8 },
       footStyles: { fillColor: hexToRgb(GREY_ROW), textColor: hexToRgb(TEXT), fontStyle: "bold", fontSize: 8 },
       alternateRowStyles: { fillColor: hexToRgb(GREY_ROW) },
-      columnStyles: { 1: { halign: "center" }, 2: { halign: "center" }, 3: { halign: "center" }, 4: { halign: "right" } },
+      didParseCell: (data) => {
+        if ([1, 2, 3].includes(data.column.index)) data.cell.styles.halign = "center";
+        if (data.column.index === 4) data.cell.styles.halign = "right";
+      },
     });
     y = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 8;
   }
