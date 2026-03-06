@@ -319,7 +319,7 @@ export function exportHospitalityPDF(
 
   const getNights = (start: string, end: string) => {
     if (!start || !end) return 0;
-    const diff = Math.floor((new Date(end).getTime() - new Date(start).getTime()) / 86400000);
+    const diff = Math.floor((new Date(end).getTime() - new Date(start).getTime()) / 86400000) + 1;
     return Math.max(0, diff);
   };
 

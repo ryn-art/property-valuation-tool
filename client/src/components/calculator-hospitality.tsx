@@ -11,6 +11,7 @@ import {
   Table,
   TableBody,
   TableCell,
+  TableFooter,
   TableHead,
   TableHeader,
   TableRow,
@@ -142,7 +143,7 @@ function getNights(startDate: string, endDate: string): number {
   const start = new Date(startDate);
   const end = new Date(endDate);
   if (isNaN(start.getTime()) || isNaN(end.getTime())) return 0;
-  const diff = Math.floor((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+  const diff = Math.floor((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
   return Math.max(0, diff);
 }
 
@@ -418,7 +419,7 @@ export default function CalculatorHospitality({ state, setters, nextId, setNextI
             <StepBadge step={2} />
             <div>
               <h2 className="text-sm font-semibold" data-testid="text-section-seasons">Seasons</h2>
-              <p className="text-[11px] text-muted-foreground mt-0.5">Define seasonal periods and occupancy (end date is checkout/exclusive)</p>
+              <p className="text-[11px] text-muted-foreground mt-0.5">Define seasonal periods and occupancy. End date is included as the last night.</p>
             </div>
           </div>
 
@@ -467,6 +468,8 @@ export default function CalculatorHospitality({ state, setters, nextId, setNextI
                 <TableBody>
                   {seasons.map((s) => {
                     const nights = getNights(s.startDate, s.endDate);
+                    const bothFilled = !!s.startDate && !!s.endDate;
+                    const invalid = bothFilled && nights === 0;
                     return (
                       <TableRow key={s.id} data-testid={`row-season-${s.id}`}>
                         <TableCell className="text-sm font-medium">
@@ -479,7 +482,16 @@ export default function CalculatorHospitality({ state, setters, nextId, setNextI
                           <DatePickerButton compact value={s.endDate} onChange={(v) => updateSeasonField(s.id, "endDate", v)} testId={`input-season-end-${s.id}`} />
                         </TableCell>
                         <TableCell className="text-sm text-right tabular-nums font-semibold">
-                          {nights > 0 ? nights : <span className="text-destructive">0</span>}
+                          {nights > 0 ? (
+                            nights
+                          ) : (
+                            <span className="inline-flex items-center justify-end gap-1 text-destructive">
+                              {invalid && (
+                                <AlertTriangle className="w-3 h-3 flex-shrink-0" title="End date must be after start date" />
+                              )}
+                              0
+                            </span>
+                          )}
                         </TableCell>
                         <TableCell>
                           <Input className="h-7 text-sm w-16 text-right" type="number" min="0" max="100" value={s.occupancyPct || ""} onChange={(e) => updateSeasonField(s.id, "occupancyPct", e.target.value)} data-testid={`input-season-occ-${s.id}`} />
@@ -493,6 +505,22 @@ export default function CalculatorHospitality({ state, setters, nextId, setNextI
                     );
                   })}
                 </TableBody>
+                <TableFooter>
+                  <TableRow>
+                    <TableCell colSpan={3} className="text-xs font-medium text-muted-foreground">Total Nights</TableCell>
+                    <TableCell className="text-sm text-right tabular-nums font-semibold" data-testid="text-total-nights">
+                      {(() => {
+                        const total = seasons.reduce((sum, s) => sum + getNights(s.startDate, s.endDate), 0);
+                        return (
+                          <span className={total > 0 && total !== 365 ? "text-amber-600 dark:text-amber-400" : ""}>
+                            {total}
+                          </span>
+                        );
+                      })()}
+                    </TableCell>
+                    <TableCell colSpan={2} />
+                  </TableRow>
+                </TableFooter>
               </Table>
             </div>
           )}
