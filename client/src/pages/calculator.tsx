@@ -83,7 +83,8 @@ export default function CalculatorPage() {
   const [utilityAdj, setUtilityAdj] = useState("");
   const [capLowPct, setCapLowPct] = useState("12.0");
   const [capHighPct, setCapHighPct] = useState("13.5");
-  const [excessLand, setExcessLand] = useState("");
+  const [unusedLandSize, setUnusedLandSize] = useState("");
+  const [landValuePerM2, setLandValuePerM2] = useState("");
   const [refurb, setRefurb] = useState("");
 
   const { data: valuationsList, isLoading: isListLoading, isError: isListError } = useQuery<Valuation[]>({
@@ -123,7 +124,8 @@ export default function CalculatorPage() {
     setUtilityAdj(val.utilityAdj ? String(val.utilityAdj) : "");
     setCapLowPct(String(val.capLowPct));
     setCapHighPct(String(val.capHighPct));
-    setExcessLand(val.excessLand ? String(val.excessLand) : "");
+    setUnusedLandSize(val.unusedLandSize ? String(val.unusedLandSize) : "");
+    setLandValuePerM2(val.landValuePerM2 ? String(val.landValuePerM2) : "");
     setRefurb(val.refurb ? String(val.refurb) : "");
   }, []);
 
@@ -135,7 +137,8 @@ export default function CalculatorPage() {
       utilityAdj: Number(utilityAdj || 0),
       capLowPct: Number(capLowPct || 0),
       capHighPct: Number(capHighPct || 0),
-      excessLand: Number(excessLand || 0),
+      unusedLandSize: Number(unusedLandSize || 0),
+      landValuePerM2: Number(landValuePerM2 || 0),
       refurb: Number(refurb || 0),
     };
 
@@ -170,7 +173,7 @@ export default function CalculatorPage() {
     };
   }, [
     valuationName, incomeModel, propertyType, lines, otherMonthly, rentalActualAnnualRev,
-    stabilisedOccPct, scenario, opexAnnual, utilityAdj, capLowPct, capHighPct, excessLand, refurb,
+    stabilisedOccPct, scenario, opexAnnual, utilityAdj, capLowPct, capHighPct, unusedLandSize, landValuePerM2, refurb,
     roomTypes, seasons, rateMatrix, otherAnnualIncome, hospActualAnnualRev,
   ]);
 
@@ -249,7 +252,8 @@ export default function CalculatorPage() {
     setUtilityAdj("");
     setCapLowPct("12.0");
     setCapHighPct("13.5");
-    setExcessLand("");
+    setUnusedLandSize("");
+    setLandValuePerM2("");
     setRefurb("");
   }, []);
 
@@ -270,24 +274,24 @@ export default function CalculatorPage() {
 
   const rentalState: RentalCalcState = useMemo(() => ({
     lines, otherMonthly, actualAnnualRev: rentalActualAnnualRev, propertyType,
-    stabilisedOccPct, scenario, opexAnnual, utilityAdj, capLowPct, capHighPct, excessLand, refurb,
-  }), [lines, otherMonthly, rentalActualAnnualRev, propertyType, stabilisedOccPct, scenario, opexAnnual, utilityAdj, capLowPct, capHighPct, excessLand, refurb]);
+    stabilisedOccPct, scenario, opexAnnual, utilityAdj, capLowPct, capHighPct, unusedLandSize, landValuePerM2, refurb,
+  }), [lines, otherMonthly, rentalActualAnnualRev, propertyType, stabilisedOccPct, scenario, opexAnnual, utilityAdj, capLowPct, capHighPct, unusedLandSize, landValuePerM2, refurb]);
 
   const rentalSetters: RentalCalcSetters = useMemo(() => ({
     setLines, setOtherMonthly, setActualAnnualRev: setRentalActualAnnualRev,
     setPropertyType, setStabilisedOccPct, setScenario,
-    setOpexAnnual, setUtilityAdj, setCapLowPct, setCapHighPct, setExcessLand, setRefurb,
+    setOpexAnnual, setUtilityAdj, setCapLowPct, setCapHighPct, setUnusedLandSize, setLandValuePerM2, setRefurb,
   }), []);
 
   const hospState: HospitalityCalcState = useMemo(() => ({
     roomTypes, seasons, rateMatrix, otherAnnualIncome, actualAnnualRev: hospActualAnnualRev,
-    opexAnnual, utilityAdj, capLowPct, capHighPct, excessLand, refurb,
-  }), [roomTypes, seasons, rateMatrix, otherAnnualIncome, hospActualAnnualRev, opexAnnual, utilityAdj, capLowPct, capHighPct, excessLand, refurb]);
+    opexAnnual, utilityAdj, capLowPct, capHighPct, unusedLandSize, landValuePerM2, refurb,
+  }), [roomTypes, seasons, rateMatrix, otherAnnualIncome, hospActualAnnualRev, opexAnnual, utilityAdj, capLowPct, capHighPct, unusedLandSize, landValuePerM2, refurb]);
 
   const hospSetters: HospitalityCalcSetters = useMemo(() => ({
     setRoomTypes, setSeasons, setRateMatrix, setOtherAnnualIncome,
     setActualAnnualRev: setHospActualAnnualRev,
-    setOpexAnnual, setUtilityAdj, setCapLowPct, setCapHighPct, setExcessLand, setRefurb,
+    setOpexAnnual, setUtilityAdj, setCapLowPct, setCapHighPct, setUnusedLandSize, setLandValuePerM2, setRefurb,
   }), []);
 
   return (

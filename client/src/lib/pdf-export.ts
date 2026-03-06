@@ -183,7 +183,8 @@ export function exportRentalPDF(
     utilityAdj: string;
     capLowPct: string;
     capHighPct: string;
-    excessLand: string;
+    unusedLandSize: string;
+    landValuePerM2: string;
     refurb: string;
   },
   calc: {
@@ -248,7 +249,9 @@ export function exportRentalPDF(
     { label: "Utility Recovery", value: fmtMoney(Number(state.utilityAdj || 0)) },
     { label: "NOI (Annual)", value: fmtMoney(calc.noi) },
     { label: "Cap Rate Range", value: cL > 0 && cH > 0 ? `${fmtPct(yieldLo)} – ${fmtPct(yieldHi)}` : "—" },
-    { label: "Excess Land", value: fmtMoney(Number(state.excessLand || 0)) },
+    { label: "Unused Land (m²)", value: Number(state.unusedLandSize || 0) > 0 ? Number(state.unusedLandSize).toLocaleString("en-ZA") : "—" },
+    { label: "Land Value / m²", value: Number(state.landValuePerM2 || 0) > 0 ? fmtMoney(Number(state.landValuePerM2)) : "—" },
+    { label: "Excess Land Value", value: fmtMoney(Number(state.unusedLandSize || 0) * Number(state.landValuePerM2 || 0)) },
     { label: "Refurb / Installs", value: fmtMoney(Number(state.refurb || 0)) },
   ];
 
@@ -286,7 +289,8 @@ export function exportHospitalityPDF(
     utilityAdj: string;
     capLowPct: string;
     capHighPct: string;
-    excessLand: string;
+    unusedLandSize: string;
+    landValuePerM2: string;
     refurb: string;
   },
   calc: {
@@ -455,6 +459,10 @@ export function exportHospitalityPDF(
     { label: "Weighted ADR", value: fmtMoney(calc.weightedADR) },
     { label: "Weighted Occupancy", value: fmtPct(calc.weightedOcc) },
     { label: "Cap Rate Range", value: cL > 0 && cH > 0 ? `${fmtPct(yieldLo)} – ${fmtPct(yieldHi)}` : "—" },
+    { label: "Unused Land (m²)", value: Number(state.unusedLandSize || 0) > 0 ? Number(state.unusedLandSize).toLocaleString("en-ZA") : "—" },
+    { label: "Land Value / m²", value: Number(state.landValuePerM2 || 0) > 0 ? fmtMoney(Number(state.landValuePerM2)) : "—" },
+    { label: "Excess Land Value", value: fmtMoney(Number(state.unusedLandSize || 0) * Number(state.landValuePerM2 || 0)) },
+    { label: "Refurb / Installs", value: fmtMoney(Number(state.refurb || 0)) },
   ];
   y = kpiGrid(doc, metrics, y, 3);
 

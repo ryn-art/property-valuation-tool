@@ -109,7 +109,8 @@ export interface HospitalityCalcState {
   utilityAdj: string;
   capLowPct: string;
   capHighPct: string;
-  excessLand: string;
+  unusedLandSize: string;
+  landValuePerM2: string;
   refurb: string;
 }
 
@@ -123,7 +124,8 @@ export interface HospitalityCalcSetters {
   setUtilityAdj: (v: string) => void;
   setCapLowPct: (v: string) => void;
   setCapHighPct: (v: string) => void;
-  setExcessLand: (v: string) => void;
+  setUnusedLandSize: (v: string) => void;
+  setLandValuePerM2: (v: string) => void;
   setRefurb: (v: string) => void;
 }
 
@@ -151,7 +153,7 @@ function rateKey(roomTypeId: number, seasonId: number): string {
 export default function CalculatorHospitality({ state, setters, nextId, setNextId, valuationName }: Props) {
   const {
     roomTypes, seasons, rateMatrix, otherAnnualIncome, actualAnnualRev,
-    opexAnnual, utilityAdj, capLowPct, capHighPct, excessLand, refurb,
+    opexAnnual, utilityAdj, capLowPct, capHighPct, unusedLandSize, landValuePerM2, refurb,
   } = state;
 
   const [newRoomName, setNewRoomName] = useState("");
@@ -304,7 +306,7 @@ export default function CalculatorHospitality({ state, setters, nextId, setNextI
     const capMin = Math.min(capLow, capHigh);
     const capMax = Math.max(capLow, capHigh);
 
-    const excess = Number(excessLand || 0);
+    const excess = Number(unusedLandSize || 0) * Number(landValuePerM2 || 0);
     const ref = Number(refurb || 0);
 
     let vLow = 0;
@@ -327,7 +329,7 @@ export default function CalculatorHospitality({ state, setters, nextId, setNextI
       annualRoomRevenue, egiUsed, noi, lo, hi,
       weightedADR, weightedOcc, actualRev, performancePct, seasonBreakdown,
     };
-  }, [roomTypes, seasons, rateMatrix, otherAnnualIncome, actualAnnualRev, opexAnnual, utilityAdj, capLowPct, capHighPct, excessLand, refurb]);
+  }, [roomTypes, seasons, rateMatrix, otherAnnualIncome, actualAnnualRev, opexAnnual, utilityAdj, capLowPct, capHighPct, unusedLandSize, landValuePerM2, refurb]);
 
   const hasNoSeasons = seasons.length === 0;
   const hasInvalidDates = seasons.some((s) => getNights(s.startDate, s.endDate) <= 0);
@@ -614,19 +616,30 @@ export default function CalculatorHospitality({ state, setters, nextId, setNextI
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
-            <div>
-              <Label className="text-xs font-medium" htmlFor="input-hosp-excess">
-                + Excess Land (R)<span className="text-muted-foreground font-normal ml-1">optional</span>
-              </Label>
-              <Input id="input-hosp-excess" data-testid="input-hosp-excess" type="number" min="0" step="0.01" placeholder="R 0" value={excessLand} onChange={(e) => setters.setExcessLand(e.target.value)} />
+          <div className="mt-3 space-y-2">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Development Potential <span className="font-normal normal-case">(optional)</span></p>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label className="text-xs font-medium" htmlFor="input-hosp-unused-land-size">Unused Land Size (m²)</Label>
+                <Input id="input-hosp-unused-land-size" data-testid="input-hosp-unused-land-size" type="number" min="0" step="1" placeholder="0" value={unusedLandSize} onChange={(e) => setters.setUnusedLandSize(e.target.value)} />
+              </div>
+              <div>
+                <Label className="text-xs font-medium" htmlFor="input-hosp-land-value-per-m2">Market Land Value per m² (R)</Label>
+                <Input id="input-hosp-land-value-per-m2" data-testid="input-hosp-land-value-per-m2" type="number" min="0" step="0.01" placeholder="R 0" value={landValuePerM2} onChange={(e) => setters.setLandValuePerM2(e.target.value)} />
+              </div>
             </div>
-            <div>
-              <Label className="text-xs font-medium" htmlFor="input-hosp-refurb">
-                - Refurb / Installs (R)<span className="text-muted-foreground font-normal ml-1">optional</span>
-              </Label>
-              <Input id="input-hosp-refurb" data-testid="input-hosp-refurb" type="number" min="0" step="0.01" placeholder="R 0" value={refurb} onChange={(e) => setters.setRefurb(e.target.value)} />
-            </div>
+            {(Number(unusedLandSize || 0) > 0 || Number(landValuePerM2 || 0) > 0) && (
+              <div className="text-xs text-muted-foreground pt-0.5">
+                Excess Land Value: <span className="font-semibold text-foreground">R {(Number(unusedLandSize || 0) * Number(landValuePerM2 || 0)).toLocaleString("en-ZA", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+              </div>
+            )}
+          </div>
+
+          <div className="mt-3">
+            <Label className="text-xs font-medium" htmlFor="input-hosp-refurb">
+              - Refurb / Installs (R)<span className="text-muted-foreground font-normal ml-1">optional</span>
+            </Label>
+            <Input id="input-hosp-refurb" data-testid="input-hosp-refurb" type="number" min="0" step="0.01" placeholder="R 0" value={refurb} onChange={(e) => setters.setRefurb(e.target.value)} />
           </div>
         </Card>
 
@@ -781,7 +794,8 @@ export default function CalculatorHospitality({ state, setters, nextId, setNextI
                 <li><strong>Annual Room Revenue</strong> = Σ Season Revenues</li>
                 <li><strong>EGI</strong> = Annual Room Revenue + Other Annual Income</li>
                 <li><strong>NOI</strong> = EGI - Opex + Utility Adj</li>
-                <li><strong>Value Range</strong> = (NOI / Cap High) to (NOI / Cap Low), then + Excess Land - Refurb</li>
+                <li><strong>Excess Land Value</strong> = Unused Land Size (m²) × Market Land Value per m²</li>
+                <li><strong>Value Range</strong> = (NOI / Cap High) to (NOI / Cap Low), then + Excess Land Value - Refurb</li>
                 <li><strong>Weighted ADR</strong> = Annual Room Revenue / Total Occupied Room Nights</li>
                 <li><strong>Weighted Occ</strong> = Total Occupied RN / Total Available RN</li>
                 <li><strong>Implied Yield</strong> = Cap Rate Low% – Cap Rate High%</li>

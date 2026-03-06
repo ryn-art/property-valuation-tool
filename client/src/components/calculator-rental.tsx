@@ -69,7 +69,8 @@ export interface RentalCalcState {
   utilityAdj: string;
   capLowPct: string;
   capHighPct: string;
-  excessLand: string;
+  unusedLandSize: string;
+  landValuePerM2: string;
   refurb: string;
 }
 
@@ -84,7 +85,8 @@ export interface RentalCalcSetters {
   setUtilityAdj: (v: string) => void;
   setCapLowPct: (v: string) => void;
   setCapHighPct: (v: string) => void;
-  setExcessLand: (v: string) => void;
+  setUnusedLandSize: (v: string) => void;
+  setLandValuePerM2: (v: string) => void;
   setRefurb: (v: string) => void;
 }
 
@@ -103,7 +105,7 @@ export default function CalculatorRental({ state, setters, nextId, setNextId, va
 
   const {
     lines, otherMonthly, actualAnnualRev, propertyType, stabilisedOccPct,
-    scenario, opexAnnual, utilityAdj, capLowPct, capHighPct, excessLand, refurb,
+    scenario, opexAnnual, utilityAdj, capLowPct, capHighPct, unusedLandSize, landValuePerM2, refurb,
   } = state;
 
   const addLine = useCallback(() => {
@@ -159,7 +161,7 @@ export default function CalculatorRental({ state, setters, nextId, setNextId, va
     const capMin = Math.min(capLow, capHigh);
     const capMax = Math.max(capLow, capHigh);
 
-    const excess = Number(excessLand || 0);
+    const excess = Number(unusedLandSize || 0) * Number(landValuePerM2 || 0);
     const ref = Number(refurb || 0);
 
     let egiUsed = 0;
@@ -197,7 +199,7 @@ export default function CalculatorRental({ state, setters, nextId, setNextId, va
       pgiMonthly, pgiAnnual, derivedOcc, derivedVac, egiUsed, noi,
       lo, hi, valueNote, showActualNote, showDoubleVacWarning, showActualWarning,
     };
-  }, [lines, otherMonthly, actualAnnualRev, stabilisedOccPct, scenario, opexAnnual, utilityAdj, capLowPct, capHighPct, excessLand, refurb]);
+  }, [lines, otherMonthly, actualAnnualRev, stabilisedOccPct, scenario, opexAnnual, utilityAdj, capLowPct, capHighPct, unusedLandSize, landValuePerM2, refurb]);
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-5" id="print-area">
@@ -383,19 +385,30 @@ export default function CalculatorRental({ state, setters, nextId, setNextId, va
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
-            <div>
-              <Label className="text-xs font-medium" htmlFor="input-excess">
-                + Excess Land (R)<span className="text-muted-foreground font-normal ml-1">optional</span>
-              </Label>
-              <Input id="input-excess" data-testid="input-excess" type="number" min="0" step="0.01" placeholder="R 0" value={excessLand} onChange={(e) => setters.setExcessLand(e.target.value)} />
+          <div className="mt-3 space-y-2">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Development Potential <span className="font-normal normal-case">(optional)</span></p>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label className="text-xs font-medium" htmlFor="input-unused-land-size">Unused Land Size (m²)</Label>
+                <Input id="input-unused-land-size" data-testid="input-unused-land-size" type="number" min="0" step="1" placeholder="0" value={unusedLandSize} onChange={(e) => setters.setUnusedLandSize(e.target.value)} />
+              </div>
+              <div>
+                <Label className="text-xs font-medium" htmlFor="input-land-value-per-m2">Market Land Value per m² (R)</Label>
+                <Input id="input-land-value-per-m2" data-testid="input-land-value-per-m2" type="number" min="0" step="0.01" placeholder="R 0" value={landValuePerM2} onChange={(e) => setters.setLandValuePerM2(e.target.value)} />
+              </div>
             </div>
-            <div>
-              <Label className="text-xs font-medium" htmlFor="input-refurb">
-                - Refurb / Installs (R)<span className="text-muted-foreground font-normal ml-1">optional</span>
-              </Label>
-              <Input id="input-refurb" data-testid="input-refurb" type="number" min="0" step="0.01" placeholder="R 0" value={refurb} onChange={(e) => setters.setRefurb(e.target.value)} />
-            </div>
+            {(Number(unusedLandSize || 0) > 0 || Number(landValuePerM2 || 0) > 0) && (
+              <div className="text-xs text-muted-foreground pt-0.5">
+                Excess Land Value: <span className="font-semibold text-foreground">R {(Number(unusedLandSize || 0) * Number(landValuePerM2 || 0)).toLocaleString("en-ZA", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+              </div>
+            )}
+          </div>
+
+          <div className="mt-3">
+            <Label className="text-xs font-medium" htmlFor="input-refurb">
+              - Refurb / Installs (R)<span className="text-muted-foreground font-normal ml-1">optional</span>
+            </Label>
+            <Input id="input-refurb" data-testid="input-refurb" type="number" min="0" step="0.01" placeholder="R 0" value={refurb} onChange={(e) => setters.setRefurb(e.target.value)} />
           </div>
         </Card>
 
@@ -474,7 +487,8 @@ export default function CalculatorRental({ state, setters, nextId, setNextId, va
                 <li><strong>Current Occupancy</strong> = Actual Annual Revenue / PGI</li>
                 <li><strong>EGI (Stabilised)</strong> = PGI x Stabilised Occupancy</li>
                 <li><strong>NOI</strong> = EGI - Opex + Utility Adj</li>
-                <li><strong>Value Range</strong> = (NOI / Cap High) to (NOI / Cap Low), then + Excess Land - Refurb</li>
+                <li><strong>Excess Land Value</strong> = Unused Land Size (m²) × Market Land Value per m²</li>
+                <li><strong>Value Range</strong> = (NOI / Cap High) to (NOI / Cap Low), then + Excess Land Value - Refurb</li>
                 <li><strong>Implied Yield</strong> = Cap Rate Low% – Cap Rate High%</li>
                 <li><strong>Payback Period</strong> = (1 ÷ Cap Rate High) – (1 ÷ Cap Rate Low) in years</li>
               </ul>
