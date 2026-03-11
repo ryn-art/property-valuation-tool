@@ -253,19 +253,6 @@ export default function CalculatorHospitality({ state, setters, nextId, setNextI
     );
   }, [setters]);
 
-  const updateRoomField = useCallback((id: number, field: keyof RoomType, value: string) => {
-    setters.setRoomTypes((prev) =>
-      prev.map((r) =>
-        r.id === id
-          ? {
-              ...r,
-              [field]: field === "name" ? value : Number(value || 0),
-            }
-          : r
-      )
-    );
-  }, [setters]);
-
   const calc = useMemo(() => {
     const totalRooms = roomTypes.reduce((sum, r) => sum + r.rooms, 0);
     const totalGLA = roomTypes.reduce((sum, r) => sum + r.rooms * r.sizeSqm, 0);
