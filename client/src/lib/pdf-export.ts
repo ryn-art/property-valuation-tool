@@ -174,6 +174,7 @@ export function exportRentalClientPDF(
   valuationName: string,
   state: {
     stabilisedOccPct: string;
+    actualAnnualRev: string;
     opexAnnual: string;
     utilityAdj: string;
     capLowPct: string;
@@ -215,6 +216,18 @@ export function exportRentalClientPDF(
     { label: "Refurb / Installs", value: fmtMoney(Number(state.refurb || 0)) },
   ];
   y = kpiGrid(doc, metrics, y, 3);
+
+  const actualRev = Number(state.actualAnnualRev || 0);
+  const performancePct = actualRev > 0 && calc.egiUsed > 0 ? (actualRev / calc.egiUsed) * 100 : null;
+
+  y += 4;
+  y = sectionTitle(doc, "Performance Factor (Reality Check)", y);
+  const perfItems = [
+    { label: "Actual Revenue (12m)", value: actualRev > 0 ? fmtMoney(actualRev) : "—" },
+    { label: "Modelled Revenue (Annual)", value: fmtMoney(calc.egiUsed) },
+    { label: "Performance Factor", value: performancePct !== null ? fmtPct(performancePct) : "—" },
+  ];
+  y = kpiGrid(doc, perfItems, y, 3);
 
   y += 6;
   if (y > PAGE_H - 50) { doc.addPage(); y = 16; }
@@ -282,16 +295,14 @@ export function exportHospitalityClientPDF(
   ];
   y = kpiGrid(doc, metrics, y, 3);
 
-  if (calc.actualRev > 0 && calc.performancePct !== null) {
-    y += 4;
-    y = sectionTitle(doc, "Performance Factor (Reality Check)", y);
-    const perfItems = [
-      { label: "Actual Revenue (12m)", value: fmtMoney(calc.actualRev) },
-      { label: "Modelled Revenue (Annual)", value: fmtMoney(calc.egiUsed) },
-      { label: "Performance Factor", value: fmtPct(calc.performancePct) },
-    ];
-    y = kpiGrid(doc, perfItems, y, 3);
-  }
+  y += 4;
+  y = sectionTitle(doc, "Performance Factor (Reality Check)", y);
+  const perfItems = [
+    { label: "Actual Revenue (12m)", value: calc.actualRev > 0 ? fmtMoney(calc.actualRev) : "—" },
+    { label: "Modelled Revenue (Annual)", value: fmtMoney(calc.egiUsed) },
+    { label: "Performance Factor", value: calc.performancePct !== null ? fmtPct(calc.performancePct) : "—" },
+  ];
+  y = kpiGrid(doc, perfItems, y, 3);
 
   y += 6;
   if (y > PAGE_H - 50) { doc.addPage(); y = 16; }
