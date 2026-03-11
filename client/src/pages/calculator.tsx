@@ -32,6 +32,7 @@ import {
   ArrowLeft,
   Hotel,
   FolderOpen,
+  Copy,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-provider";
 import { useToast } from "@/hooks/use-toast";
@@ -128,6 +129,13 @@ export default function CalculatorPage() {
     setLandValuePerM2(val.landValuePerM2 ? String(val.landValuePerM2) : "");
     setRefurb(val.refurb ? String(val.refurb) : "");
   }, []);
+
+  const duplicateValuation = useCallback((val: Valuation) => {
+    loadValuation(val);
+    setActiveValuationId(null);
+    setValuationName(`Copy of ${val.name}`);
+    toast({ title: "Duplicated", description: `Working on a copy of "${val.name}". Save to keep it.` });
+  }, [loadValuation, toast]);
 
   const getCurrentData = useCallback(() => {
     const base = {
@@ -407,34 +415,46 @@ export default function CalculatorPage() {
                               </span>
                             </div>
                           </div>
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Button
-                                size="icon"
-                                variant="ghost"
-                                className="opacity-0 group-hover:opacity-100 flex-shrink-0 h-8 w-8"
-                                aria-label={`Delete ${v.name}`}
-                                data-testid={`button-home-delete-${v.id}`}
-                                onClick={(e) => e.stopPropagation()}
-                              >
-                                <Trash2 className="w-3.5 h-3.5 text-destructive" />
-                              </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>Delete valuation?</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  This will permanently delete "{v.name}". This action cannot be undone.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                <AlertDialogAction onClick={() => deleteMutation.mutate(v.id)} data-testid={`button-home-confirm-delete-${v.id}`}>
-                                  Delete
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
+                          <div className="flex items-center gap-0.5">
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              className="opacity-0 group-hover:opacity-100 flex-shrink-0 h-8 w-8"
+                              aria-label={`Duplicate ${v.name}`}
+                              data-testid={`button-home-duplicate-${v.id}`}
+                              onClick={(e) => { e.stopPropagation(); duplicateValuation(v); }}
+                            >
+                              <Copy className="w-3.5 h-3.5 text-muted-foreground" />
+                            </Button>
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button
+                                  size="icon"
+                                  variant="ghost"
+                                  className="opacity-0 group-hover:opacity-100 flex-shrink-0 h-8 w-8"
+                                  aria-label={`Delete ${v.name}`}
+                                  data-testid={`button-home-delete-${v.id}`}
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  <Trash2 className="w-3.5 h-3.5 text-destructive" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Delete valuation?</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    This will permanently delete "{v.name}". This action cannot be undone.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                  <AlertDialogAction onClick={() => deleteMutation.mutate(v.id)} data-testid={`button-home-confirm-delete-${v.id}`}>
+                                    Delete
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </div>
                         </div>
                       ))}
                     </Card>
@@ -545,34 +565,46 @@ export default function CalculatorPage() {
                                       </span>
                                     </div>
                                   </div>
-                                  <AlertDialog>
-                                    <AlertDialogTrigger asChild>
-                                      <Button
-                                        size="icon"
-                                        variant="ghost"
-                                        className="opacity-0 group-hover:opacity-100 flex-shrink-0 h-7 w-7"
-                                        aria-label={`Delete ${v.name}`}
-                                        data-testid={`button-delete-${v.id}`}
-                                        onClick={(e) => e.stopPropagation()}
-                                      >
-                                        <Trash2 className="w-3 h-3 text-destructive" />
-                                      </Button>
-                                    </AlertDialogTrigger>
-                                    <AlertDialogContent>
-                                      <AlertDialogHeader>
-                                        <AlertDialogTitle>Delete valuation?</AlertDialogTitle>
-                                        <AlertDialogDescription>
-                                          This will permanently delete "{v.name}". This action cannot be undone.
-                                        </AlertDialogDescription>
-                                      </AlertDialogHeader>
-                                      <AlertDialogFooter>
-                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                        <AlertDialogAction onClick={() => deleteMutation.mutate(v.id)} data-testid={`button-confirm-delete-${v.id}`}>
-                                          Delete
-                                        </AlertDialogAction>
-                                      </AlertDialogFooter>
-                                    </AlertDialogContent>
-                                  </AlertDialog>
+                                  <div className="flex items-center gap-0.5">
+                                    <Button
+                                      size="icon"
+                                      variant="ghost"
+                                      className="opacity-0 group-hover:opacity-100 flex-shrink-0 h-7 w-7"
+                                      aria-label={`Duplicate ${v.name}`}
+                                      data-testid={`button-duplicate-${v.id}`}
+                                      onClick={(e) => { e.stopPropagation(); duplicateValuation(v); setSavedPopoverOpen(false); }}
+                                    >
+                                      <Copy className="w-3 h-3 text-muted-foreground" />
+                                    </Button>
+                                    <AlertDialog>
+                                      <AlertDialogTrigger asChild>
+                                        <Button
+                                          size="icon"
+                                          variant="ghost"
+                                          className="opacity-0 group-hover:opacity-100 flex-shrink-0 h-7 w-7"
+                                          aria-label={`Delete ${v.name}`}
+                                          data-testid={`button-delete-${v.id}`}
+                                          onClick={(e) => e.stopPropagation()}
+                                        >
+                                          <Trash2 className="w-3 h-3 text-destructive" />
+                                        </Button>
+                                      </AlertDialogTrigger>
+                                      <AlertDialogContent>
+                                        <AlertDialogHeader>
+                                          <AlertDialogTitle>Delete valuation?</AlertDialogTitle>
+                                          <AlertDialogDescription>
+                                            This will permanently delete "{v.name}". This action cannot be undone.
+                                          </AlertDialogDescription>
+                                        </AlertDialogHeader>
+                                        <AlertDialogFooter>
+                                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                          <AlertDialogAction onClick={() => deleteMutation.mutate(v.id)} data-testid={`button-confirm-delete-${v.id}`}>
+                                            Delete
+                                          </AlertDialogAction>
+                                        </AlertDialogFooter>
+                                      </AlertDialogContent>
+                                    </AlertDialog>
+                                  </div>
                                 </div>
                               </div>
                             ))}

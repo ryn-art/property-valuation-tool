@@ -180,6 +180,16 @@ export default function CalculatorHospitality({ state, setters, nextId, setNextI
     setNewRoomSize("");
   }, [newRoomName, newRoomCount, newRoomSize, nextId, setters, setNextId]);
 
+  const updateRoomTypeField = useCallback((id: number, field: keyof RoomType, value: string) => {
+    setters.setRoomTypes((prev) =>
+      prev.map((r) =>
+        r.id === id
+          ? { ...r, [field]: field === "name" ? value : Number(value) }
+          : r
+      )
+    );
+  }, [setters]);
+
   const removeRoomType = useCallback((id: number) => {
     setters.setRoomTypes((prev) => prev.filter((r) => r.id !== id));
     setters.setRateMatrix((prev) => {
@@ -390,9 +400,15 @@ export default function CalculatorHospitality({ state, setters, nextId, setNextI
                 <TableBody>
                   {roomTypes.map((r) => (
                     <TableRow key={r.id} data-testid={`row-room-${r.id}`}>
-                      <TableCell className="text-sm font-medium">{r.name}</TableCell>
-                      <TableCell className="text-sm text-right tabular-nums">{r.rooms}</TableCell>
-                      <TableCell className="text-sm text-right tabular-nums text-muted-foreground">{money(r.sizeSqm)}</TableCell>
+                      <TableCell className="text-sm font-medium">
+                        <Input className="h-7 text-sm w-28" value={r.name} onChange={(e) => updateRoomTypeField(r.id, "name", e.target.value)} data-testid={`input-room-name-${r.id}`} />
+                      </TableCell>
+                      <TableCell>
+                        <Input className="h-7 text-sm w-16 text-right" type="number" min="1" step="1" value={r.rooms || ""} onChange={(e) => updateRoomTypeField(r.id, "rooms", e.target.value)} data-testid={`input-room-count-${r.id}`} />
+                      </TableCell>
+                      <TableCell>
+                        <Input className="h-7 text-sm w-20 text-right" type="number" min="0" step="0.01" value={r.sizeSqm || ""} onChange={(e) => updateRoomTypeField(r.id, "sizeSqm", e.target.value)} data-testid={`input-room-size-${r.id}`} />
+                      </TableCell>
                       <TableCell className="text-sm text-right tabular-nums font-semibold">{money(r.rooms * r.sizeSqm)}</TableCell>
                       <TableCell className="text-right">
                         <Button size="icon" variant="ghost" aria-label={`Remove ${r.name}`} onClick={() => removeRoomType(r.id)} data-testid={`button-remove-room-${r.id}`}>
