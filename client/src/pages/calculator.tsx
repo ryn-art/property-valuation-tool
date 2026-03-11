@@ -341,8 +341,8 @@ export default function CalculatorPage() {
                     className="p-6 cursor-pointer transition-all hover:border-primary/40 hover:shadow-md group"
                     role="button"
                     tabIndex={0}
-                    onClick={() => setIncomeModel("rental")}
-                    onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setIncomeModel("rental"); } }}
+                    onClick={() => { startNew(); setIncomeModel("rental"); }}
+                    onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); startNew(); setIncomeModel("rental"); } }}
                     data-testid="card-select-rental"
                   >
                     <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
@@ -358,8 +358,8 @@ export default function CalculatorPage() {
                     className="p-6 cursor-pointer transition-all hover:border-primary/40 hover:shadow-md group"
                     role="button"
                     tabIndex={0}
-                    onClick={() => setIncomeModel("hospitality")}
-                    onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setIncomeModel("hospitality"); } }}
+                    onClick={() => { startNew(); setIncomeModel("hospitality"); }}
+                    onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); startNew(); setIncomeModel("hospitality"); } }}
                     data-testid="card-select-hospitality"
                   >
                     <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
