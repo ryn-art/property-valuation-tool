@@ -36,7 +36,7 @@ import {
   FileDown,
 } from "lucide-react";
 import { StepBadge, KpiCard, money, pct, clamp } from "./calculator-shared";
-import { exportRentalPDF } from "@/lib/pdf-export";
+import { exportRentalPDF, exportRentalClientPDF } from "@/lib/pdf-export";
 import type { IncomeLine } from "@shared/schema";
 
 type PropertyType = "office" | "retail" | "industrial" | "storage" | "other";
@@ -466,10 +466,14 @@ export default function CalculatorRental({ state, setters, nextId, setNextId, va
           </div>
         )}
 
-        <div className="flex justify-end">
+        <div className="flex justify-end gap-2">
+          <Button variant="outline" size="sm" onClick={() => exportRentalClientPDF(valuationName, state, calc)} data-testid="button-export-client-pdf">
+            <FileDown className="w-3.5 h-3.5 mr-1.5" />
+            Client Summary
+          </Button>
           <Button variant="outline" size="sm" onClick={() => exportRentalPDF(valuationName, state, calc)} data-testid="button-export-pdf">
             <FileDown className="w-3.5 h-3.5 mr-1.5" />
-            Export PDF
+            Full Report
           </Button>
         </div>
 

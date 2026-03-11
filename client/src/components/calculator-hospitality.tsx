@@ -33,7 +33,7 @@ import {
   CalendarIcon,
 } from "lucide-react";
 import { StepBadge, KpiCard, money, pct } from "./calculator-shared";
-import { exportHospitalityPDF } from "@/lib/pdf-export";
+import { exportHospitalityPDF, exportHospitalityClientPDF } from "@/lib/pdf-export";
 import { cn } from "@/lib/utils";
 import type { RoomType, Season, RateMatrix } from "@shared/schema";
 
@@ -799,10 +799,14 @@ export default function CalculatorHospitality({ state, setters, nextId, setNextI
           );
         })()}
 
-        <div className="flex justify-end">
+        <div className="flex justify-end gap-2">
+          <Button variant="outline" size="sm" onClick={() => exportHospitalityClientPDF(valuationName, state, calc)} data-testid="button-export-client-pdf-hosp">
+            <FileDown className="w-3.5 h-3.5 mr-1.5" />
+            Client Summary
+          </Button>
           <Button variant="outline" size="sm" onClick={() => exportHospitalityPDF(valuationName, state, calc)} data-testid="button-export-pdf-hosp">
             <FileDown className="w-3.5 h-3.5 mr-1.5" />
-            Export PDF
+            Full Report
           </Button>
         </div>
 

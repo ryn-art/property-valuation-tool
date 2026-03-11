@@ -170,6 +170,142 @@ function valuationBox(doc: jsPDF, lo: number, hi: number, yieldStr: string, payb
   return y + 39;
 }
 
+export function exportRentalClientPDF(
+  valuationName: string,
+  state: {
+    stabilisedOccPct: string;
+    opexAnnual: string;
+    utilityAdj: string;
+    capLowPct: string;
+    capHighPct: string;
+    unusedLandSize: string;
+    landValuePerM2: string;
+    refurb: string;
+  },
+  calc: {
+    pgiAnnual: number;
+    egiUsed: number;
+    noi: number;
+    lo: number;
+    hi: number;
+  },
+) {
+  const doc = new jsPDF({ unit: "mm", format: "a4" });
+
+  drawHeader(doc, valuationName, "Income Approach – Property Valuation  ·  Client Summary");
+
+  let y = 30;
+  y = disclaimer(doc, y);
+
+  const cL = Number(state.capLowPct || 0);
+  const cH = Number(state.capHighPct || 0);
+  const yieldLo = Math.min(cL, cH);
+  const yieldHi = Math.max(cL, cH);
+
+  y = sectionTitle(doc, "Key Metrics", y);
+  const metrics = [
+    { label: "PGI (Annual)", value: fmtMoney(calc.pgiAnnual) },
+    { label: "Stabilised Occ.", value: `${state.stabilisedOccPct || "0"}%` },
+    { label: "EGI (Annual)", value: fmtMoney(calc.egiUsed) },
+    { label: "Operating Expenses", value: fmtMoney(Number(state.opexAnnual || 0)) },
+    { label: "Utility Recovery", value: fmtMoney(Number(state.utilityAdj || 0)) },
+    { label: "NOI (Annual)", value: fmtMoney(calc.noi) },
+    { label: "Cap Rate Range", value: cL > 0 && cH > 0 ? `${fmtPct(yieldLo)} – ${fmtPct(yieldHi)}` : "—" },
+    { label: "Excess Land Value", value: fmtMoney(Number(state.unusedLandSize || 0) * Number(state.landValuePerM2 || 0)) },
+    { label: "Refurb / Installs", value: fmtMoney(Number(state.refurb || 0)) },
+  ];
+  y = kpiGrid(doc, metrics, y, 3);
+
+  y += 6;
+  if (y > PAGE_H - 50) { doc.addPage(); y = 16; }
+
+  const yieldStr = cL > 0 && cH > 0 ? `${fmtPct(yieldLo)} – ${fmtPct(yieldHi)}` : "—";
+  const paybackStr = cL > 0 && cH > 0
+    ? `${(1 / (yieldHi / 100)).toFixed(1)} – ${(1 / (yieldLo / 100)).toFixed(1)} years`
+    : "—";
+  valuationBox(doc, calc.lo, calc.hi, yieldStr, paybackStr, y);
+
+  drawFooter(doc, doc.getNumberOfPages());
+  doc.save(`${valuationName} – Client Summary.pdf`);
+}
+
+export function exportHospitalityClientPDF(
+  valuationName: string,
+  state: {
+    otherAnnualIncome: string;
+    actualAnnualRev: string;
+    opexAnnual: string;
+    utilityAdj: string;
+    capLowPct: string;
+    capHighPct: string;
+    unusedLandSize: string;
+    landValuePerM2: string;
+    refurb: string;
+  },
+  calc: {
+    annualRoomRevenue: number;
+    egiUsed: number;
+    noi: number;
+    lo: number;
+    hi: number;
+    weightedADR: number;
+    weightedOcc: number;
+    actualRev: number;
+    performancePct: number | null;
+  },
+) {
+  const doc = new jsPDF({ unit: "mm", format: "a4" });
+
+  drawHeader(doc, valuationName, "Income Approach – Property Valuation  ·  Client Summary");
+
+  let y = 30;
+  y = disclaimer(doc, y);
+
+  const cL = Number(state.capLowPct || 0);
+  const cH = Number(state.capHighPct || 0);
+  const yieldLo = Math.min(cL, cH);
+  const yieldHi = Math.max(cL, cH);
+
+  y = sectionTitle(doc, "Key Metrics", y);
+  const metrics = [
+    { label: "Annual Room Revenue", value: fmtMoney(calc.annualRoomRevenue) },
+    { label: "Other Annual Income", value: fmtMoney(Number(state.otherAnnualIncome || 0)) },
+    { label: "EGI (Annual)", value: fmtMoney(calc.egiUsed) },
+    { label: "Operating Expenses", value: fmtMoney(Number(state.opexAnnual || 0)) },
+    { label: "Utility Recovery", value: fmtMoney(Number(state.utilityAdj || 0)) },
+    { label: "NOI (Annual)", value: fmtMoney(calc.noi) },
+    { label: "Weighted ADR", value: fmtMoney(calc.weightedADR) },
+    { label: "Weighted Occupancy", value: fmtPct(calc.weightedOcc) },
+    { label: "Cap Rate Range", value: cL > 0 && cH > 0 ? `${fmtPct(yieldLo)} – ${fmtPct(yieldHi)}` : "—" },
+    { label: "Excess Land Value", value: fmtMoney(Number(state.unusedLandSize || 0) * Number(state.landValuePerM2 || 0)) },
+    { label: "Refurb / Installs", value: fmtMoney(Number(state.refurb || 0)) },
+  ];
+  y = kpiGrid(doc, metrics, y, 3);
+
+  if (calc.actualRev > 0 && calc.performancePct !== null) {
+    y += 4;
+    y = sectionTitle(doc, "Performance Factor (Reality Check)", y);
+    const perfItems = [
+      { label: "Actual Revenue (12m)", value: fmtMoney(calc.actualRev) },
+      { label: "Modelled Revenue (Annual)", value: fmtMoney(calc.egiUsed) },
+      { label: "Performance Factor", value: fmtPct(calc.performancePct) },
+    ];
+    y = kpiGrid(doc, perfItems, y, 3);
+  }
+
+  y += 6;
+  if (y > PAGE_H - 50) { doc.addPage(); y = 16; }
+
+  const yieldStr = cL > 0 && cH > 0 ? `${fmtPct(yieldLo)} – ${fmtPct(yieldHi)}` : "—";
+  const paybackStr = cL > 0 && cH > 0
+    ? `${(1 / (yieldHi / 100)).toFixed(1)} – ${(1 / (yieldLo / 100)).toFixed(1)} years`
+    : "—";
+  valuationBox(doc, calc.lo, calc.hi, yieldStr, paybackStr, y);
+
+  drawFooter(doc, doc.getNumberOfPages());
+  doc.save(`${valuationName} – Client Summary.pdf`);
+}
+
 export function exportRentalPDF(
   valuationName: string,
   state: {
