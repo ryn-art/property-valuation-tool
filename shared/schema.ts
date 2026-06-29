@@ -22,6 +22,8 @@ export const incomeLineSchema = z.object({
   desc: z.string(),
   size: z.number(),
   rate: z.number(),
+  qty: z.number().default(1),
+  climateControlled: z.boolean().default(false),
 });
 
 export type IncomeLine = z.infer<typeof incomeLineSchema>;
@@ -44,6 +46,16 @@ export const seasonSchema = z.object({
 });
 
 export type Season = z.infer<typeof seasonSchema>;
+
+export const expenseLineSchema = z.object({
+  id: z.number(),
+  group: z.string().default("Operating Expenses"),
+  label: z.string(),
+  monthly: z.number().default(0),
+  recovery: z.number().default(0),
+});
+
+export type ExpenseLine = z.infer<typeof expenseLineSchema>;
 
 export const rateMatrixSchema = z.record(z.string(), z.number());
 
@@ -69,6 +81,7 @@ export const valuations = pgTable("valuations", {
   roomTypes: jsonb("room_types").notNull().default([]),
   seasons: jsonb("seasons").notNull().default([]),
   rateMatrix: jsonb("rate_matrix").notNull().default({}),
+  expenseLines: jsonb("expense_lines").notNull().default([]),
   otherAnnualIncome: real("other_annual_income").notNull().default(0),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
@@ -82,11 +95,12 @@ export const insertValuationSchema = createInsertSchema(valuations).omit({
   lines: z.array(incomeLineSchema).default([]),
   name: z.string().min(1).default("Untitled Valuation"),
   incomeModel: z.enum(["rental", "hospitality"]).default("rental"),
-  propertyType: z.enum(["office", "retail", "industrial", "storage", "other"]).default("office"),
+  propertyType: z.enum(["office", "retail", "industrial", "storage", "student", "other"]).default("office"),
   scenario: z.enum(["stabilised", "actual"]).default("stabilised"),
   roomTypes: z.array(roomTypeSchema).default([]),
   seasons: z.array(seasonSchema).default([]),
   rateMatrix: rateMatrixSchema.default({}),
+  expenseLines: z.array(expenseLineSchema).default([]),
   otherAnnualIncome: z.number().default(0),
 });
 

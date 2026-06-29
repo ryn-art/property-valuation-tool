@@ -1,4 +1,5 @@
 import { useState, useCallback, useMemo } from "react";
+import { useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { Card } from "@/components/ui/card";
@@ -20,6 +21,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   Trash2,
+  Globe,
   Building2,
   ArrowRight,
   Save,
@@ -33,6 +35,7 @@ import {
   Hotel,
   FolderOpen,
   Copy,
+  GraduationCap,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-provider";
 import { useToast } from "@/hooks/use-toast";
@@ -43,7 +46,7 @@ import CalculatorHospitality from "@/components/calculator-hospitality";
 import type { HospitalityCalcState, HospitalityCalcSetters } from "@/components/calculator-hospitality";
 import type { Valuation, IncomeLine, RoomType, Season, RateMatrix } from "@shared/schema";
 
-type PropertyType = "office" | "retail" | "industrial" | "storage" | "other";
+type PropertyType = "office" | "retail" | "industrial" | "storage" | "student" | "other";
 type Scenario = "stabilised" | "actual";
 type IncomeModel = "rental" | "hospitality";
 
@@ -52,11 +55,13 @@ const PROPERTY_LABELS: Record<PropertyType, string> = {
   retail: "Retail",
   industrial: "Industrial",
   storage: "Self-storage",
+  student: "Student Accommodation",
   other: "Other",
 };
 
 export default function CalculatorPage() {
   const { toast } = useToast();
+  const [, navigate] = useLocation();
 
   const [incomeModel, setIncomeModel] = useState<IncomeModel | null>(null);
   const [activeValuationId, setActiveValuationId] = useState<number | null>(null);
@@ -80,6 +85,7 @@ export default function CalculatorPage() {
   const [otherAnnualIncome, setOtherAnnualIncome] = useState("");
   const [hospActualAnnualRev, setHospActualAnnualRev] = useState("");
 
+  const [expenseLines, setExpenseLines] = useState<ExpenseLine[]>([]);
   const [opexAnnual, setOpexAnnual] = useState("");
   const [utilityAdj, setUtilityAdj] = useState("");
   const [capLowPct, setCapLowPct] = useState("12.0");
@@ -121,6 +127,8 @@ export default function CalculatorPage() {
       setNextId(allIds.length > 0 ? Math.max(...allIds) + 1 : 1);
     }
 
+    const savedExpenses = (val.expenseLines as ExpenseLine[]) || [];
+    setExpenseLines(savedExpenses);
     setOpexAnnual(val.opexAnnual ? String(val.opexAnnual) : "");
     setUtilityAdj(val.utilityAdj ? String(val.utilityAdj) : "");
     setCapLowPct(String(val.capLowPct));
@@ -128,6 +136,10 @@ export default function CalculatorPage() {
     setUnusedLandSize(val.unusedLandSize ? String(val.unusedLandSize) : "");
     setLandValuePerM2(val.landValuePerM2 ? String(val.landValuePerM2) : "");
     setRefurb(val.refurb ? String(val.refurb) : "");
+    const expIds = savedExpenses.map((e: ExpenseLine) => e.id);
+    if (expIds.length > 0) {
+      setNextId((prev) => Math.max(prev, Math.max(...expIds) + 1));
+    }
   }, []);
 
   const duplicateValuation = useCallback((val: Valuation) => {
@@ -137,7 +149,7 @@ export default function CalculatorPage() {
     toast({ title: "Duplicated", description: `Working on a copy of "${val.name}". Save to keep it.` });
   }, [loadValuation, toast]);
 
-  const getCurrentData = useCallback(() => {
+  const getCurrentData = () => {
     const base = {
       name: valuationName,
       incomeModel: incomeModel || "rental",
@@ -148,6 +160,7 @@ export default function CalculatorPage() {
       unusedLandSize: Number(unusedLandSize || 0),
       landValuePerM2: Number(landValuePerM2 || 0),
       refurb: Number(refurb || 0),
+      expenseLines,
     };
 
     if (incomeModel === "hospitality") {
@@ -179,11 +192,7 @@ export default function CalculatorPage() {
       rateMatrix: {},
       otherAnnualIncome: 0,
     };
-  }, [
-    valuationName, incomeModel, propertyType, lines, otherMonthly, rentalActualAnnualRev,
-    stabilisedOccPct, scenario, opexAnnual, utilityAdj, capLowPct, capHighPct, unusedLandSize, landValuePerM2, refurb,
-    roomTypes, seasons, rateMatrix, otherAnnualIncome, hospActualAnnualRev,
-  ]);
+  };
 
   const createMutation = useMutation({
     mutationFn: async () => {
@@ -256,6 +265,7 @@ export default function CalculatorPage() {
     setRateMatrix({});
     setOtherAnnualIncome("");
     setHospActualAnnualRev("");
+    setExpenseLines([]);
     setOpexAnnual("");
     setUtilityAdj("");
     setCapLowPct("12.0");
@@ -283,12 +293,14 @@ export default function CalculatorPage() {
   const rentalState: RentalCalcState = useMemo(() => ({
     lines, otherMonthly, actualAnnualRev: rentalActualAnnualRev, propertyType,
     stabilisedOccPct, scenario, opexAnnual, utilityAdj, capLowPct, capHighPct, unusedLandSize, landValuePerM2, refurb,
-  }), [lines, otherMonthly, rentalActualAnnualRev, propertyType, stabilisedOccPct, scenario, opexAnnual, utilityAdj, capLowPct, capHighPct, unusedLandSize, landValuePerM2, refurb]);
+    expenseLines,
+  }), [lines, otherMonthly, rentalActualAnnualRev, propertyType, stabilisedOccPct, scenario, opexAnnual, utilityAdj, capLowPct, capHighPct, unusedLandSize, landValuePerM2, refurb, expenseLines]);
 
   const rentalSetters: RentalCalcSetters = useMemo(() => ({
     setLines, setOtherMonthly, setActualAnnualRev: setRentalActualAnnualRev,
     setPropertyType, setStabilisedOccPct, setScenario,
     setOpexAnnual, setUtilityAdj, setCapLowPct, setCapHighPct, setUnusedLandSize, setLandValuePerM2, setRefurb,
+    setExpenseLines,
   }), []);
 
   const hospState: HospitalityCalcState = useMemo(() => ({
@@ -307,9 +319,11 @@ export default function CalculatorPage() {
       <div className="border-b bg-card/50 dark:bg-card/30 backdrop-blur-sm sticky top-0 z-50 print:hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between gap-3">
           <div className="flex items-center gap-3 min-w-0">
-            <div className="w-8 h-8 rounded-md bg-primary flex items-center justify-center flex-shrink-0">
-              <Building2 className="w-4 h-4 text-primary-foreground" />
-            </div>
+            <a href="/" className="text-[11px] text-muted-foreground hover:text-foreground flex items-center gap-1 flex-shrink-0 transition-colors">
+              <ArrowLeft className="w-3 h-3" /> Dashboard
+            </a>
+            <div className="w-px h-4 bg-border flex-shrink-0" />
+            <img src="/images/aldes-logo.png" alt="Aldes" className="h-8 flex-shrink-0" />
             <div className="min-w-0">
               <h1 className="text-sm font-semibold truncate" data-testid="text-title">
                 Property Valuation Calculator
@@ -344,7 +358,7 @@ export default function CalculatorPage() {
                 <p className="text-sm text-muted-foreground text-center mb-8 max-w-md">
                   Select the income model that matches your property. This determines how revenue is calculated.
                 </p>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-2xl">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full max-w-4xl">
                   <Card
                     className="p-6 cursor-pointer transition-all hover:border-primary/40 hover:shadow-md group"
                     role="button"
@@ -376,6 +390,23 @@ export default function CalculatorPage() {
                     <h3 className="text-base font-semibold mb-1">Hospitality Property</h3>
                     <p className="text-xs text-muted-foreground leading-relaxed">
                       Lodge, guesthouse, or hotel. Income based on room types, seasonal rates, and occupancy by season.
+                    </p>
+                  </Card>
+
+                  <Card
+                    className="p-6 cursor-pointer transition-all hover:border-primary/40 hover:shadow-md group"
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => { startNew(); setPropertyType("student"); setStabilisedOccPct("90"); setIncomeModel("rental"); }}
+                    onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); startNew(); setPropertyType("student"); setStabilisedOccPct("90"); setIncomeModel("rental"); } }}
+                    data-testid="card-select-student"
+                  >
+                    <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
+                      <GraduationCap className="w-6 h-6 text-primary" />
+                    </div>
+                    <h3 className="text-base font-semibold mb-1">Student Accommodation</h3>
+                    <p className="text-xs text-muted-foreground leading-relaxed">
+                      NSFAS or private. Income based on beds or units, monthly rates, and occupancy.
                     </p>
                   </Card>
                 </div>
@@ -416,6 +447,16 @@ export default function CalculatorPage() {
                             </div>
                           </div>
                           <div className="flex items-center gap-0.5">
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              className="opacity-0 group-hover:opacity-100 flex-shrink-0 h-8 w-8"
+                              aria-label={`Post ${v.name} to website`}
+                              title="Post to Website"
+                              onClick={(e) => { e.stopPropagation(); navigate(`/post/${v.id}`); }}
+                            >
+                              <Globe className="w-3.5 h-3.5 text-teal-600" />
+                            </Button>
                             <Button
                               size="icon"
                               variant="ghost"
@@ -470,7 +511,7 @@ export default function CalculatorPage() {
                   </Button>
 
                   <Badge variant="outline" className="text-[10px] no-default-active-elevate print:hidden">
-                    {incomeModel === "rental" ? "Rental / Lease" : "Hospitality"}
+                    {propertyType === "student" ? "Student Accommodation" : incomeModel === "rental" ? "Rental / Lease" : "Hospitality"}
                   </Badge>
 
                   <div className="flex-1" />
