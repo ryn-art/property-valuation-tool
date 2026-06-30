@@ -1,9 +1,7 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
-import { ALDES_AUCTIONS_LOGO } from "./logo-base64";
 
 const NAV = "#1e3a5f";
-const GOLD = "#C9A84C";
 const BLUE = "#2563eb";
 const BLUE_LIGHT = "#eff6ff";
 const GREY_ROW = "#f8fafc";
@@ -44,66 +42,6 @@ function setDrawColor(doc: jsPDF, hex: string) {
   doc.setDrawColor(...hexToRgb(hex));
 }
 
-function drawCoverPage(
-  doc: jsPDF,
-  title: string,
-  subtitle: string,
-  summaryRows: { label: string; value: string }[],
-) {
-  // Logo — centered, top third
-  const logoW = 50;
-  const logoH = 50;
-  const logoX = (PAGE_W - logoW) / 2;
-  doc.addImage(ALDES_AUCTIONS_LOGO, "PNG", logoX, 45, logoW, logoH);
-
-  // Gold divider line
-  setDrawColor(doc, GOLD);
-  doc.setLineWidth(0.8);
-  doc.line(PAGE_W / 2 - 25, 108, PAGE_W / 2 + 25, 108);
-
-  // Title
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(26);
-  setTextColor(doc, NAV);
-  doc.text("BROKER OPINION", PAGE_W / 2, 130, { align: "center" });
-
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(26);
-  setTextColor(doc, GOLD);
-  doc.text("OF VALUE", PAGE_W / 2, 142, { align: "center" });
-
-  // Subtitle (property name)
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(12);
-  setTextColor(doc, MUTED);
-  const splitSubtitle = doc.splitTextToSize(subtitle, CONTENT_W - 40);
-  doc.text(splitSubtitle, PAGE_W / 2, 158, { align: "center" });
-
-  // Summary table at bottom
-  const tableTop = 220;
-  setDrawColor(doc, DIVIDER);
-  doc.setLineWidth(0.3);
-
-  summaryRows.forEach((row, i) => {
-    const rowY = tableTop + i * 14;
-    doc.line(MARGIN + 20, rowY, PAGE_W - MARGIN - 20, rowY);
-
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(8.5);
-    setTextColor(doc, NAV);
-    doc.text(row.label.toUpperCase(), MARGIN + 24, rowY + 9);
-
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(9);
-    setTextColor(doc, TEXT);
-    doc.text(row.value, PAGE_W / 2 + 10, rowY + 9);
-  });
-
-  // Bottom line
-  const lastY = tableTop + summaryRows.length * 14;
-  doc.line(MARGIN + 20, lastY, PAGE_W - MARGIN - 20, lastY);
-}
-
 function drawHeader(doc: jsPDF, name: string, subtitle: string) {
   setFill(doc, NAV);
   doc.rect(0, 0, PAGE_W, 26, "F");
@@ -135,77 +73,9 @@ function drawFooter(doc: jsPDF, totalPages: number) {
     doc.setFont("helvetica", "normal");
     doc.setFontSize(7);
     setTextColor(doc, MUTED);
-    doc.text("Income Approach – Broker Opinion of Value", MARGIN, PAGE_H - 7);
+    doc.text("Income Approach – Property Valuation", MARGIN, PAGE_H - 7);
     doc.text(`Page ${i} of ${pageCount}`, PAGE_W - MARGIN, PAGE_H - 7, { align: "right" });
   }
-}
-
-function drawSignature(doc: jsPDF, y: number): number {
-  if (y > PAGE_H - 80) { doc.addPage(); y = 20; }
-
-  y += 8;
-  setDrawColor(doc, DIVIDER);
-  doc.setLineWidth(0.3);
-  doc.line(MARGIN, y, PAGE_W - MARGIN, y);
-  y += 10;
-
-  const leftX = MARGIN;
-  const rightX = PAGE_W / 2 + 8;
-  const sigLineW = 62;
-
-  // Row 1: labels
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(8);
-  setTextColor(doc, MUTED);
-  doc.text("Prepared by:", leftX, y);
-  doc.text("Accepted by (Seller):", rightX, y);
-
-  // Row 2: names
-  y += 8;
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(11);
-  setTextColor(doc, NAV);
-  doc.text("Peet Brits", leftX, y);
-
-  // Row 3: roles
-  y += 5;
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(8.5);
-  setTextColor(doc, TEXT);
-  doc.text("Aldes Auctions", leftX, y);
-  doc.text("Seller / Vendor", rightX, y);
-
-  // Row 4: signature lines
-  y += 12;
-  setDrawColor(doc, NAV);
-  doc.setLineWidth(0.4);
-  doc.line(leftX, y, leftX + sigLineW, y);
-  doc.line(rightX, y, rightX + sigLineW, y);
-
-  // Row 5: "Signature" labels
-  y += 5;
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(7.5);
-  setTextColor(doc, MUTED);
-  doc.text("Signature", leftX, y);
-  doc.text("Signature", rightX, y);
-
-  // Row 6: date lines
-  y += 10;
-  setDrawColor(doc, NAV);
-  doc.setLineWidth(0.4);
-  doc.line(leftX, y, leftX + 40, y);
-  doc.line(rightX, y, rightX + 40, y);
-
-  // Row 7: "Date" labels
-  y += 5;
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(7.5);
-  setTextColor(doc, MUTED);
-  doc.text("Date", leftX, y);
-  doc.text("Date", rightX, y);
-
-  return y + 10;
 }
 
 function sectionTitle(doc: jsPDF, title: string, y: number): number {
@@ -226,7 +96,7 @@ function disclaimer(doc: jsPDF, y: number): number {
   doc.setFontSize(7.5);
   setTextColor(doc, MUTED);
   doc.text(
-    "Indicative value only. Not a formal appraisal.",
+    "Indicative only. Use evidence (rent comparables + sales/cap evidence) to support assumptions. Not a formal appraisal.",
     MARGIN + 3,
     y + 4.5,
   );
@@ -323,7 +193,7 @@ export function exportRentalClientPDF(
 ) {
   const doc = new jsPDF({ unit: "mm", format: "a4" });
 
-  drawHeader(doc, valuationName, "Income Approach – Broker Opinion of Value  ·  Client Summary");
+  drawHeader(doc, valuationName, "Income Approach – Property Valuation  ·  Client Summary");
 
   let y = 30;
   y = disclaimer(doc, y);
@@ -399,7 +269,7 @@ export function exportHospitalityClientPDF(
 ) {
   const doc = new jsPDF({ unit: "mm", format: "a4" });
 
-  drawHeader(doc, valuationName, "Income Approach – Broker Opinion of Value  ·  Client Summary");
+  drawHeader(doc, valuationName, "Income Approach – Property Valuation  ·  Client Summary");
 
   let y = 30;
   y = disclaimer(doc, y);
@@ -463,7 +333,6 @@ export function exportRentalPDF(
     unusedLandSize: string;
     landValuePerM2: string;
     refurb: string;
-    expenseLines?: { id: number; group: string; label: string; monthly: number; recovery: number }[];
   },
   calc: {
     pgiMonthly: number;
@@ -473,30 +342,14 @@ export function exportRentalPDF(
     lo: number;
     hi: number;
     valueNote: string;
-    opex?: number;
+    totalUnits?: number;
+    totalM2?: number;
   },
 ) {
   const doc = new jsPDF({ unit: "mm", format: "a4" });
   const isStorage = state.propertyType === "storage";
-  const isStudent = state.propertyType === "student";
-  const useFlatRate = isStorage || isStudent;
 
-  const cL = Number(state.capLowPct || 0);
-  const cH = Number(state.capHighPct || 0);
-  const yieldLo = Math.min(cL, cH);
-  const yieldHi = Math.max(cL, cH);
-  const today = new Date().toLocaleDateString("en-ZA", { day: "numeric", month: "long", year: "numeric" });
-  const typeLabel = isStudent ? "Student Accommodation" : isStorage ? "Self-storage" : (state.propertyType?.charAt(0).toUpperCase() + state.propertyType?.slice(1)) || "Property";
-
-  drawCoverPage(doc, valuationName, valuationName, [
-    { label: "Indicated Value Range", value: `${fmtMoney(calc.lo)}  –  ${fmtMoney(calc.hi)}` },
-    { label: "Property Type", value: typeLabel },
-    { label: "Document", value: "Income Approach — Broker Opinion of Value" },
-    { label: "Date Issued", value: today },
-  ]);
-
-  doc.addPage();
-  drawHeader(doc, valuationName, "Income Approach – Broker Opinion of Value");
+  drawHeader(doc, valuationName, `Income Approach – Property Valuation  ·  Rental / Lease`);
 
   let y = 30;
   y = disclaimer(doc, y);
@@ -505,17 +358,17 @@ export function exportRentalPDF(
 
   const totalUnits = state.lines.reduce((s, l) => s + (l.qty || 1), 0);
   const totalM2 = state.lines.reduce((s, l) => s + (l.qty || 1) * l.size, 0);
-  const lineMonthly = (l: { size: number; rate: number; qty?: number }) =>
-    useFlatRate ? (l.qty || 1) * l.rate : (l.qty || 1) * l.size * l.rate;
 
-  const qtyCol = isStudent ? "Beds / Units" : useFlatRate ? "Units" : "Qty";
-  const rateCol = useFlatRate ? "Rate (R/unit/mo)" : "Rate (R/m²/mo)";
+  const lineMonthly = (l: { size: number; rate: number; qty?: number }) =>
+    isStorage ? (l.qty || 1) * l.rate : (l.qty || 1) * l.size * l.rate;
 
   const lineRows = state.lines.map((l) => [
     l.desc,
     String(l.qty || 1),
     l.size.toLocaleString("en-ZA"),
-    fmtMoney(l.rate),
+    isStorage
+      ? fmtMoney(l.rate)
+      : `R ${l.rate.toLocaleString("en-ZA", { minimumFractionDigits: 2 })}`,
     fmtMoney(lineMonthly(l)),
   ]);
 
@@ -525,7 +378,13 @@ export function exportRentalPDF(
 
   autoTable(doc, {
     startY: y,
-    head: [["Description", qtyCol, "Size (m²)", rateCol, "Monthly (R)"]],
+    head: [[
+      "Description",
+      isStorage ? "Units" : "Qty",
+      "Size (m²)",
+      isStorage ? "Rate (R/unit/mo)" : "Rate (R/m²/mo)",
+      "Monthly (R)",
+    ]],
     body: lineRows.length
       ? lineRows
       : [["No income lines added", "", "", "", ""]],
@@ -556,71 +415,12 @@ export function exportRentalPDF(
 
   y = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 8;
 
-  // ── Expense Schedule ────────────────────────────────────────────
-  const expenses = state.expenseLines || [];
-  if (expenses.length > 0) {
-    if (y > PAGE_H - 60) { doc.addPage(); drawHeader(doc, valuationName, "Income Approach – Broker Opinion of Value"); y = 30; }
-    y = sectionTitle(doc, "Expense Schedule", y);
-
-    const groups = [...new Set(expenses.map(e => e.group))];
-    const expRows: (string | { content: string; colSpan?: number; styles?: any })[][] = [];
-
-    for (const group of groups) {
-      const groupItems = expenses.filter(e => e.group === group);
-      const groupNet = groupItems.reduce((s, e) => s + Math.max(0, e.monthly - e.recovery), 0);
-      // Group header row
-      expRows.push([
-        { content: group.toUpperCase(), colSpan: 2, styles: { fontStyle: "bold", textColor: hexToRgb(BLUE), fillColor: hexToRgb("#f0f4ff"), fontSize: 7.5 } },
-        { content: "", styles: { fillColor: hexToRgb("#f0f4ff") } },
-        { content: fmtMoney(groupNet), styles: { fontStyle: "bold", textColor: hexToRgb(BLUE), fillColor: hexToRgb("#f0f4ff"), halign: "right" } },
-        { content: fmtMoney(groupNet * 12), styles: { fontStyle: "bold", textColor: hexToRgb(BLUE), fillColor: hexToRgb("#f0f4ff"), halign: "right" } },
-      ]);
-      // Line items
-      for (const e of groupItems) {
-        const net = Math.max(0, e.monthly - e.recovery);
-        expRows.push([
-          "    " + e.label,
-          fmtMoney(e.monthly),
-          e.recovery > 0 ? fmtMoney(e.recovery) : "—",
-          fmtMoney(net),
-          fmtMoney(net * 12),
-        ]);
-      }
-    }
-
-    const totalNetMonthly = expenses.reduce((s, e) => s + Math.max(0, e.monthly - e.recovery), 0);
-
-    autoTable(doc, {
-      startY: y,
-      head: [["Expense", "Cost / mo", "Recovery", "Net / mo", "Annual (Net)"]],
-      body: expRows as any,
-      foot: [["Total Operating Expenses", "", "", fmtMoney(totalNetMonthly), fmtMoney(totalNetMonthly * 12)]],
-      margin: { left: MARGIN, right: MARGIN },
-      styles: { fontSize: 8, cellPadding: 2.5, textColor: hexToRgb(TEXT), font: "helvetica" },
-      headStyles: { fillColor: hexToRgb(NAV), textColor: hexToRgb(WHITE), fontStyle: "bold", fontSize: 8 },
-      alternateRowStyles: { fillColor: hexToRgb(GREY_ROW) },
-      didParseCell: (data: any) => {
-        const col = data.column.index;
-        const isFoot = data.section === "foot";
-        if (isFoot) {
-          data.cell.styles.fillColor = hexToRgb(NAV);
-          data.cell.styles.textColor = hexToRgb(GOLD);
-          data.cell.styles.fontStyle = "bold";
-          data.cell.styles.fontSize = 8;
-        }
-        if (col >= 1) data.cell.styles.halign = "right";
-      },
-    });
-
-    y = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 4;
-    doc.setFont("helvetica", "italic");
-    doc.setFontSize(7);
-    setTextColor(doc, MUTED);
-    doc.text("Net = Cost minus tenant recoveries. Annual = Monthly × 12.", MARGIN, y + 3);
-    y += 10;
-  }
-
   y = sectionTitle(doc, "Income & Expense Summary", y);
+
+  const cL = Number(state.capLowPct || 0);
+  const cH = Number(state.capHighPct || 0);
+  const yieldLo = Math.min(cL, cH);
+  const yieldHi = Math.max(cL, cH);
 
   const metrics = [
     { label: "PGI (Annual)", value: fmtMoney(calc.pgiAnnual) },
@@ -653,11 +453,9 @@ export function exportRentalPDF(
   doc.setFontSize(7.5);
   setTextColor(doc, MUTED);
   doc.text(calc.valueNote, MARGIN, y + 3);
-  y += 8;
 
-  drawSignature(doc, y);
   drawFooter(doc, doc.getNumberOfPages());
-  doc.save(`${valuationName} – Broker Opinion of Value.pdf`);
+  doc.save(`${valuationName} – Property Valuation.pdf`);
 }
 
 export function exportHospitalityPDF(
@@ -714,7 +512,7 @@ export function exportHospitalityPDF(
       : d.toLocaleDateString("en-ZA", { day: "numeric", month: "short", year: "numeric" });
   };
 
-  drawHeader(doc, valuationName, "Income Approach – Broker Opinion of Value  ·  Hospitality");
+  drawHeader(doc, valuationName, "Income Approach – Property Valuation  ·  Hospitality");
 
   let y = 30;
   y = disclaimer(doc, y);
@@ -875,9 +673,8 @@ export function exportHospitalityPDF(
       : "—";
 
   if (y > PAGE_H - 50) { doc.addPage(); y = 16; }
-  y = valuationBox(doc, calc.lo, calc.hi, yieldStr, paybackStr, y);
+  valuationBox(doc, calc.lo, calc.hi, yieldStr, paybackStr, y);
 
-  drawSignature(doc, y);
   drawFooter(doc, doc.getNumberOfPages());
-  doc.save(`${valuationName} – Broker Opinion of Value.pdf`);
+  doc.save(`${valuationName} – Property Valuation.pdf`);
 }
