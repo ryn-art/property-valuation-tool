@@ -103,6 +103,7 @@ export const insertValuationSchema = createInsertSchema(valuations).omit({
   expenseLines: z.array(expenseLineSchema).default([]),
   otherAnnualIncome: z.number().default(0),
   brokerName: z.string().default("Peet Brits"),
+  companyBrand: z.enum(["auctions", "brokers"]).default("auctions"),
 });
 
 export type InsertValuation = z.infer<typeof insertValuationSchema>;

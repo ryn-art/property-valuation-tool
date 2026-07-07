@@ -8,6 +8,13 @@ import { Separator } from "@/components/ui/separator";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Table,
   TableBody,
   TableCell,
@@ -34,6 +41,7 @@ import {
 } from "lucide-react";
 import { StepBadge, KpiCard, money, pct } from "./calculator-shared";
 import { exportHospitalityPDF, exportHospitalityClientPDF } from "@/lib/pdf-export";
+import type { CompanyBrand } from "@/lib/pdf-export";
 import { cn } from "@/lib/utils";
 import type { RoomType, Season, RateMatrix } from "@shared/schema";
 
@@ -114,6 +122,7 @@ export interface HospitalityCalcState {
   landValuePerM2: string;
   refurb: string;
   brokerName: string;
+  companyBrand: CompanyBrand;
 }
 
 export interface HospitalityCalcSetters {
@@ -130,6 +139,7 @@ export interface HospitalityCalcSetters {
   setLandValuePerM2: (v: string) => void;
   setRefurb: (v: string) => void;
   setBrokerName: (v: string) => void;
+  setCompanyBrand: (v: CompanyBrand) => void;
 }
 
 interface Props {
@@ -675,9 +685,23 @@ export default function CalculatorHospitality({ state, setters, nextId, setNextI
             <Input id="input-hosp-refurb" data-testid="input-hosp-refurb" type="number" min="0" step="0.01" placeholder="R 0" value={refurb} onChange={(e) => setters.setRefurb(e.target.value)} />
           </div>
 
-          <div className="mt-4 pt-4 border-t">
-            <Label className="text-xs font-medium" htmlFor="input-hosp-broker-name">Prepared by (broker name on report)</Label>
-            <Input id="input-hosp-broker-name" type="text" placeholder="e.g. Peet Brits" value={state.brokerName} onChange={(e) => setters.setBrokerName(e.target.value)} />
+          <div className="mt-4 pt-4 border-t grid grid-cols-2 gap-3">
+            <div>
+              <Label className="text-xs font-medium" htmlFor="input-hosp-broker-name">Prepared by (broker name on report)</Label>
+              <Input id="input-hosp-broker-name" type="text" placeholder="e.g. Peet Brits" value={state.brokerName} onChange={(e) => setters.setBrokerName(e.target.value)} />
+            </div>
+            <div>
+              <Label className="text-xs font-medium" htmlFor="select-hosp-company-brand">Company (logo on report)</Label>
+              <Select value={state.companyBrand} onValueChange={(v) => setters.setCompanyBrand(v as CompanyBrand)}>
+                <SelectTrigger id="select-hosp-company-brand" data-testid="select-hosp-company-brand">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="auctions">Aldes Auctions</SelectItem>
+                  <SelectItem value="brokers">Aldes Business Brokers</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </Card>
 
@@ -814,7 +838,7 @@ export default function CalculatorHospitality({ state, setters, nextId, setNextI
             <FileDown className="w-3.5 h-3.5 mr-1.5" />
             Client Summary
           </Button>
-          <Button variant="outline" size="sm" onClick={() => exportHospitalityPDF(valuationName, state, calc, state.brokerName)} data-testid="button-export-pdf-hosp">
+          <Button variant="outline" size="sm" onClick={() => exportHospitalityPDF(valuationName, state, calc, state.brokerName, state.companyBrand)} data-testid="button-export-pdf-hosp">
             <FileDown className="w-3.5 h-3.5 mr-1.5" />
             Full Report
           </Button>

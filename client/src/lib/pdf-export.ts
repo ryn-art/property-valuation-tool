@@ -1,6 +1,13 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
-import { ALDES_AUCTIONS_LOGO } from "./logo-base64";
+import { ALDES_AUCTIONS_LOGO, ALDES_BUSINESS_BROKERS_LOGO } from "./logo-base64";
+
+export type CompanyBrand = "auctions" | "brokers";
+
+const COMPANY_INFO: Record<CompanyBrand, { logo: string; name: string }> = {
+  auctions: { logo: ALDES_AUCTIONS_LOGO, name: "Aldes Auctions" },
+  brokers: { logo: ALDES_BUSINESS_BROKERS_LOGO, name: "Aldes Business Brokers" },
+};
 
 const NAV = "#1e3a5f";
 const GOLD = "#C9A84C";
@@ -49,12 +56,13 @@ function drawCoverPage(
   title: string,
   subtitle: string,
   summaryRows: { label: string; value: string }[],
+  companyBrand: CompanyBrand = "auctions",
 ) {
   // Logo — centered, top third
   const logoW = 50;
   const logoH = 50;
   const logoX = (PAGE_W - logoW) / 2;
-  doc.addImage(ALDES_AUCTIONS_LOGO, "PNG", logoX, 45, logoW, logoH);
+  doc.addImage(COMPANY_INFO[companyBrand].logo, "PNG", logoX, 45, logoW, logoH);
 
   // Gold divider line
   setDrawColor(doc, GOLD);
@@ -140,7 +148,7 @@ function drawFooter(doc: jsPDF, totalPages: number) {
   }
 }
 
-function drawSignature(doc: jsPDF, y: number, brokerName = "Peet Brits"): number {
+function drawSignature(doc: jsPDF, y: number, brokerName = "Peet Brits", companyBrand: CompanyBrand = "auctions"): number {
   if (y > PAGE_H - 70) { doc.addPage(); y = 20; }
 
   y += 8;
@@ -164,7 +172,7 @@ function drawSignature(doc: jsPDF, y: number, brokerName = "Peet Brits"): number
   doc.setFont("helvetica", "normal");
   doc.setFontSize(8.5);
   setTextColor(doc, TEXT);
-  doc.text("Aldes Auctions", MARGIN, y);
+  doc.text(COMPANY_INFO[companyBrand].name, MARGIN, y);
 
   y += 12;
   setDrawColor(doc, NAV);
@@ -459,6 +467,7 @@ export function exportRentalPDF(
     opex?: number;
   },
   brokerName = "Peet Brits",
+  companyBrand: CompanyBrand = "auctions",
 ) {
   const doc = new jsPDF({ unit: "mm", format: "a4" });
   const isStorage = state.propertyType === "storage";
@@ -477,7 +486,7 @@ export function exportRentalPDF(
     { label: "Property Type", value: typeLabel },
     { label: "Document", value: "Income Approach — Broker Opinion of Value" },
     { label: "Date Issued", value: today },
-  ]);
+  ], companyBrand);
 
   doc.addPage();
   drawHeader(doc, valuationName, "Income Approach – Broker Opinion of Value");
@@ -639,7 +648,7 @@ export function exportRentalPDF(
   doc.text(calc.valueNote, MARGIN, y + 3);
   y += 8;
 
-  drawSignature(doc, y, brokerName);
+  drawSignature(doc, y, brokerName, companyBrand);
   drawFooter(doc, doc.getNumberOfPages());
   doc.save(`${valuationName} – Broker Opinion of Value.pdf`);
 }
@@ -682,6 +691,7 @@ export function exportHospitalityPDF(
     }[];
   },
   brokerName = "Peet Brits",
+  companyBrand: CompanyBrand = "auctions",
 ) {
   const doc = new jsPDF({ unit: "mm", format: "a4" });
 
@@ -862,7 +872,7 @@ export function exportHospitalityPDF(
   if (y > PAGE_H - 50) { doc.addPage(); y = 16; }
   y = valuationBox(doc, calc.lo, calc.hi, yieldStr, paybackStr, y);
 
-  drawSignature(doc, y, brokerName);
+  drawSignature(doc, y, brokerName, companyBrand);
   drawFooter(doc, doc.getNumberOfPages());
   doc.save(`${valuationName} – Broker Opinion of Value.pdf`);
 }

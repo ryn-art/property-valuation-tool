@@ -44,6 +44,7 @@ import CalculatorRental from "@/components/calculator-rental";
 import type { RentalCalcState, RentalCalcSetters } from "@/components/calculator-rental";
 import CalculatorHospitality from "@/components/calculator-hospitality";
 import type { HospitalityCalcState, HospitalityCalcSetters } from "@/components/calculator-hospitality";
+import type { CompanyBrand } from "@/lib/pdf-export";
 import type { Valuation, IncomeLine, RoomType, Season, RateMatrix } from "@shared/schema";
 
 type PropertyType = "office" | "retail" | "industrial" | "storage" | "student" | "other";
@@ -87,6 +88,7 @@ export default function CalculatorPage() {
 
   const [expenseLines, setExpenseLines] = useState<ExpenseLine[]>([]);
   const [brokerName, setBrokerName] = useState("Peet Brits");
+  const [companyBrand, setCompanyBrand] = useState<CompanyBrand>("auctions");
   const [opexAnnual, setOpexAnnual] = useState("");
   const [utilityAdj, setUtilityAdj] = useState("");
   const [capLowPct, setCapLowPct] = useState("12.0");
@@ -131,6 +133,7 @@ export default function CalculatorPage() {
     const savedExpenses = (val.expenseLines as ExpenseLine[]) || [];
     setExpenseLines(savedExpenses);
     setBrokerName((val as any).brokerName || "Peet Brits");
+    setCompanyBrand(((val as any).companyBrand as CompanyBrand) || "auctions");
     setOpexAnnual(val.opexAnnual ? String(val.opexAnnual) : "");
     setUtilityAdj(val.utilityAdj ? String(val.utilityAdj) : "");
     setCapLowPct(String(val.capLowPct));
@@ -164,6 +167,7 @@ export default function CalculatorPage() {
       refurb: Number(refurb || 0),
       expenseLines,
       brokerName,
+      companyBrand,
     };
 
     if (incomeModel === "hospitality") {
@@ -270,6 +274,7 @@ export default function CalculatorPage() {
     setHospActualAnnualRev("");
     setExpenseLines([]);
     setBrokerName("Peet Brits");
+    setCompanyBrand("auctions");
     setOpexAnnual("");
     setUtilityAdj("");
     setCapLowPct("12.0");
@@ -297,26 +302,26 @@ export default function CalculatorPage() {
   const rentalState: RentalCalcState = useMemo(() => ({
     lines, otherMonthly, actualAnnualRev: rentalActualAnnualRev, propertyType,
     stabilisedOccPct, scenario, opexAnnual, utilityAdj, capLowPct, capHighPct, unusedLandSize, landValuePerM2, refurb,
-    expenseLines, brokerName,
-  }), [lines, otherMonthly, rentalActualAnnualRev, propertyType, stabilisedOccPct, scenario, opexAnnual, utilityAdj, capLowPct, capHighPct, unusedLandSize, landValuePerM2, refurb, expenseLines, brokerName]);
+    expenseLines, brokerName, companyBrand,
+  }), [lines, otherMonthly, rentalActualAnnualRev, propertyType, stabilisedOccPct, scenario, opexAnnual, utilityAdj, capLowPct, capHighPct, unusedLandSize, landValuePerM2, refurb, expenseLines, brokerName, companyBrand]);
 
   const rentalSetters: RentalCalcSetters = useMemo(() => ({
     setLines, setOtherMonthly, setActualAnnualRev: setRentalActualAnnualRev,
     setPropertyType, setStabilisedOccPct, setScenario,
     setOpexAnnual, setUtilityAdj, setCapLowPct, setCapHighPct, setUnusedLandSize, setLandValuePerM2, setRefurb,
-    setExpenseLines, setBrokerName,
+    setExpenseLines, setBrokerName, setCompanyBrand,
   }), []);
 
   const hospState: HospitalityCalcState = useMemo(() => ({
     roomTypes, seasons, rateMatrix, otherAnnualIncome, actualAnnualRev: hospActualAnnualRev,
-    opexAnnual, utilityAdj, capLowPct, capHighPct, unusedLandSize, landValuePerM2, refurb, brokerName,
-  }), [roomTypes, seasons, rateMatrix, otherAnnualIncome, hospActualAnnualRev, opexAnnual, utilityAdj, capLowPct, capHighPct, unusedLandSize, landValuePerM2, refurb, brokerName]);
+    opexAnnual, utilityAdj, capLowPct, capHighPct, unusedLandSize, landValuePerM2, refurb, brokerName, companyBrand,
+  }), [roomTypes, seasons, rateMatrix, otherAnnualIncome, hospActualAnnualRev, opexAnnual, utilityAdj, capLowPct, capHighPct, unusedLandSize, landValuePerM2, refurb, brokerName, companyBrand]);
 
   const hospSetters: HospitalityCalcSetters = useMemo(() => ({
     setRoomTypes, setSeasons, setRateMatrix, setOtherAnnualIncome,
     setActualAnnualRev: setHospActualAnnualRev,
     setOpexAnnual, setUtilityAdj, setCapLowPct, setCapHighPct, setUnusedLandSize, setLandValuePerM2, setRefurb,
-    setBrokerName,
+    setBrokerName, setCompanyBrand,
   }), []);
 
   return (

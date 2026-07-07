@@ -40,6 +40,7 @@ import {
 } from "lucide-react";
 import { StepBadge, KpiCard, money, pct, clamp } from "./calculator-shared";
 import { exportRentalPDF, exportRentalClientPDF } from "@/lib/pdf-export";
+import type { CompanyBrand } from "@/lib/pdf-export";
 import type { IncomeLine, ExpenseLine } from "@shared/schema";
 
 type PropertyType = "office" | "retail" | "industrial" | "storage" | "student" | "other";
@@ -82,6 +83,7 @@ export interface RentalCalcState {
   refurb: string;
   expenseLines: ExpenseLine[];
   brokerName: string;
+  companyBrand: CompanyBrand;
 }
 
 export interface RentalCalcSetters {
@@ -100,6 +102,7 @@ export interface RentalCalcSetters {
   setRefurb: (v: string) => void;
   setExpenseLines: (fn: ExpenseLine[] | ((prev: ExpenseLine[]) => ExpenseLine[])) => void;
   setBrokerName: (v: string) => void;
+  setCompanyBrand: (v: CompanyBrand) => void;
 }
 
 interface Props {
@@ -129,7 +132,7 @@ export default function CalculatorRental({ state, setters, nextId, setNextId, va
   const {
     lines, otherMonthly, actualAnnualRev, propertyType, stabilisedOccPct,
     scenario, opexAnnual, utilityAdj, capLowPct, capHighPct, unusedLandSize,
-    landValuePerM2, refurb, expenseLines, brokerName,
+    landValuePerM2, refurb, expenseLines, brokerName, companyBrand,
   } = state;
 
   const isStorage = propertyType === "storage";
@@ -734,9 +737,23 @@ export default function CalculatorRental({ state, setters, nextId, setNextId, va
           <Input id="input-refurb" type="number" min="0" step="0.01" placeholder="R 0" value={refurb} onChange={(e) => setters.setRefurb(e.target.value)} />
         </div>
 
-        <div className="mt-4 pt-4 border-t">
-          <Label className="text-xs font-medium" htmlFor="input-broker-name">Prepared by (broker name on report)</Label>
-          <Input id="input-broker-name" type="text" placeholder="e.g. Peet Brits" value={brokerName} onChange={(e) => setters.setBrokerName(e.target.value)} />
+        <div className="mt-4 pt-4 border-t grid grid-cols-2 gap-3">
+          <div>
+            <Label className="text-xs font-medium" htmlFor="input-broker-name">Prepared by (broker name on report)</Label>
+            <Input id="input-broker-name" type="text" placeholder="e.g. Peet Brits" value={brokerName} onChange={(e) => setters.setBrokerName(e.target.value)} />
+          </div>
+          <div>
+            <Label className="text-xs font-medium" htmlFor="select-company-brand">Company (logo on report)</Label>
+            <Select value={companyBrand} onValueChange={(v) => setters.setCompanyBrand(v as CompanyBrand)}>
+              <SelectTrigger id="select-company-brand" data-testid="select-company-brand">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="auctions">Aldes Auctions</SelectItem>
+                <SelectItem value="brokers">Aldes Business Brokers</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       </Card>
 
@@ -824,7 +841,7 @@ export default function CalculatorRental({ state, setters, nextId, setNextId, va
         <Button variant="outline" size="sm" onClick={() => exportRentalClientPDF(valuationName, { ...state, opexAnnual: String(calc.opex) }, calc)}>
           <FileDown className="w-3.5 h-3.5 mr-1.5" /> Client Summary
         </Button>
-        <Button variant="outline" size="sm" onClick={() => exportRentalPDF(valuationName, { ...state, opexAnnual: String(calc.opex) }, calc, brokerName)}>
+        <Button variant="outline" size="sm" onClick={() => exportRentalPDF(valuationName, { ...state, opexAnnual: String(calc.opex) }, calc, brokerName, companyBrand)}>
           <FileDown className="w-3.5 h-3.5 mr-1.5" /> Full Report
         </Button>
       </div>
