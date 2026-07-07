@@ -4,9 +4,9 @@ import { ALDES_AUCTIONS_LOGO, ALDES_BUSINESS_BROKERS_LOGO } from "./logo-base64"
 
 export type CompanyBrand = "auctions" | "brokers";
 
-const COMPANY_INFO: Record<CompanyBrand, { logo: string; name: string }> = {
-  auctions: { logo: ALDES_AUCTIONS_LOGO, name: "Aldes Auctions" },
-  brokers: { logo: ALDES_BUSINESS_BROKERS_LOGO, name: "Aldes Business Brokers" },
+const COMPANY_INFO: Record<CompanyBrand, { logo: string; name: string; format: "PNG" | "JPEG"; logoW: number; logoH: number }> = {
+  auctions: { logo: ALDES_AUCTIONS_LOGO, name: "Aldes Auctions", format: "PNG", logoW: 50, logoH: 50 },
+  brokers: { logo: ALDES_BUSINESS_BROKERS_LOGO, name: "Aldes Business Brokers", format: "JPEG", logoW: 61, logoH: 50 },
 };
 
 const NAV = "#1e3a5f";
@@ -59,10 +59,9 @@ function drawCoverPage(
   companyBrand: CompanyBrand = "auctions",
 ) {
   // Logo — centered, top third
-  const logoW = 50;
-  const logoH = 50;
+  const { logo, format, logoW, logoH } = COMPANY_INFO[companyBrand];
   const logoX = (PAGE_W - logoW) / 2;
-  doc.addImage(COMPANY_INFO[companyBrand].logo, "PNG", logoX, 45, logoW, logoH);
+  doc.addImage(logo, format, logoX, 45, logoW, logoH);
 
   // Gold divider line
   setDrawColor(doc, GOLD);
