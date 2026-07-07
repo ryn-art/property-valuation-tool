@@ -177,8 +177,15 @@ function drawSignature(doc: jsPDF, y: number, brokerName = "Peet Brits"): number
   setTextColor(doc, MUTED);
   doc.text("Signature", MARGIN, y);
 
+  const today = new Date().toLocaleDateString("en-ZA", { day: "numeric", month: "long", year: "numeric" });
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(9);
+  setTextColor(doc, TEXT);
+  doc.text(today, PAGE_W - MARGIN - 50, y - 7);
   setDrawColor(doc, NAV);
   doc.line(PAGE_W - MARGIN - 50, y - 5, PAGE_W - MARGIN, y - 5);
+  doc.setFontSize(7.5);
+  setTextColor(doc, MUTED);
   doc.text("Date", PAGE_W - MARGIN - 50, y);
 
   return y + 10;
