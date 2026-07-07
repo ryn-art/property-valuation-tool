@@ -113,6 +113,7 @@ export interface HospitalityCalcState {
   unusedLandSize: string;
   landValuePerM2: string;
   refurb: string;
+  brokerName: string;
 }
 
 export interface HospitalityCalcSetters {
@@ -128,6 +129,7 @@ export interface HospitalityCalcSetters {
   setUnusedLandSize: (v: string) => void;
   setLandValuePerM2: (v: string) => void;
   setRefurb: (v: string) => void;
+  setBrokerName: (v: string) => void;
 }
 
 interface Props {
@@ -672,6 +674,11 @@ export default function CalculatorHospitality({ state, setters, nextId, setNextI
             </Label>
             <Input id="input-hosp-refurb" data-testid="input-hosp-refurb" type="number" min="0" step="0.01" placeholder="R 0" value={refurb} onChange={(e) => setters.setRefurb(e.target.value)} />
           </div>
+
+          <div className="mt-4 pt-4 border-t">
+            <Label className="text-xs font-medium" htmlFor="input-hosp-broker-name">Prepared by (broker name on report)</Label>
+            <Input id="input-hosp-broker-name" type="text" placeholder="e.g. Peet Brits" value={state.brokerName} onChange={(e) => setters.setBrokerName(e.target.value)} />
+          </div>
         </Card>
 
         {hasInvalidCaps && (
@@ -807,7 +814,7 @@ export default function CalculatorHospitality({ state, setters, nextId, setNextI
             <FileDown className="w-3.5 h-3.5 mr-1.5" />
             Client Summary
           </Button>
-          <Button variant="outline" size="sm" onClick={() => exportHospitalityPDF(valuationName, state, calc)} data-testid="button-export-pdf-hosp">
+          <Button variant="outline" size="sm" onClick={() => exportHospitalityPDF(valuationName, state, calc, state.brokerName)} data-testid="button-export-pdf-hosp">
             <FileDown className="w-3.5 h-3.5 mr-1.5" />
             Full Report
           </Button>

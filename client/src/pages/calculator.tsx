@@ -86,6 +86,7 @@ export default function CalculatorPage() {
   const [hospActualAnnualRev, setHospActualAnnualRev] = useState("");
 
   const [expenseLines, setExpenseLines] = useState<ExpenseLine[]>([]);
+  const [brokerName, setBrokerName] = useState("Peet Brits");
   const [opexAnnual, setOpexAnnual] = useState("");
   const [utilityAdj, setUtilityAdj] = useState("");
   const [capLowPct, setCapLowPct] = useState("12.0");
@@ -129,6 +130,7 @@ export default function CalculatorPage() {
 
     const savedExpenses = (val.expenseLines as ExpenseLine[]) || [];
     setExpenseLines(savedExpenses);
+    setBrokerName((val as any).brokerName || "Peet Brits");
     setOpexAnnual(val.opexAnnual ? String(val.opexAnnual) : "");
     setUtilityAdj(val.utilityAdj ? String(val.utilityAdj) : "");
     setCapLowPct(String(val.capLowPct));
@@ -161,6 +163,7 @@ export default function CalculatorPage() {
       landValuePerM2: Number(landValuePerM2 || 0),
       refurb: Number(refurb || 0),
       expenseLines,
+      brokerName,
     };
 
     if (incomeModel === "hospitality") {
@@ -266,6 +269,7 @@ export default function CalculatorPage() {
     setOtherAnnualIncome("");
     setHospActualAnnualRev("");
     setExpenseLines([]);
+    setBrokerName("Peet Brits");
     setOpexAnnual("");
     setUtilityAdj("");
     setCapLowPct("12.0");
@@ -293,25 +297,26 @@ export default function CalculatorPage() {
   const rentalState: RentalCalcState = useMemo(() => ({
     lines, otherMonthly, actualAnnualRev: rentalActualAnnualRev, propertyType,
     stabilisedOccPct, scenario, opexAnnual, utilityAdj, capLowPct, capHighPct, unusedLandSize, landValuePerM2, refurb,
-    expenseLines,
-  }), [lines, otherMonthly, rentalActualAnnualRev, propertyType, stabilisedOccPct, scenario, opexAnnual, utilityAdj, capLowPct, capHighPct, unusedLandSize, landValuePerM2, refurb, expenseLines]);
+    expenseLines, brokerName,
+  }), [lines, otherMonthly, rentalActualAnnualRev, propertyType, stabilisedOccPct, scenario, opexAnnual, utilityAdj, capLowPct, capHighPct, unusedLandSize, landValuePerM2, refurb, expenseLines, brokerName]);
 
   const rentalSetters: RentalCalcSetters = useMemo(() => ({
     setLines, setOtherMonthly, setActualAnnualRev: setRentalActualAnnualRev,
     setPropertyType, setStabilisedOccPct, setScenario,
     setOpexAnnual, setUtilityAdj, setCapLowPct, setCapHighPct, setUnusedLandSize, setLandValuePerM2, setRefurb,
-    setExpenseLines,
+    setExpenseLines, setBrokerName,
   }), []);
 
   const hospState: HospitalityCalcState = useMemo(() => ({
     roomTypes, seasons, rateMatrix, otherAnnualIncome, actualAnnualRev: hospActualAnnualRev,
-    opexAnnual, utilityAdj, capLowPct, capHighPct, unusedLandSize, landValuePerM2, refurb,
-  }), [roomTypes, seasons, rateMatrix, otherAnnualIncome, hospActualAnnualRev, opexAnnual, utilityAdj, capLowPct, capHighPct, unusedLandSize, landValuePerM2, refurb]);
+    opexAnnual, utilityAdj, capLowPct, capHighPct, unusedLandSize, landValuePerM2, refurb, brokerName,
+  }), [roomTypes, seasons, rateMatrix, otherAnnualIncome, hospActualAnnualRev, opexAnnual, utilityAdj, capLowPct, capHighPct, unusedLandSize, landValuePerM2, refurb, brokerName]);
 
   const hospSetters: HospitalityCalcSetters = useMemo(() => ({
     setRoomTypes, setSeasons, setRateMatrix, setOtherAnnualIncome,
     setActualAnnualRev: setHospActualAnnualRev,
     setOpexAnnual, setUtilityAdj, setCapLowPct, setCapHighPct, setUnusedLandSize, setLandValuePerM2, setRefurb,
+    setBrokerName,
   }), []);
 
   return (

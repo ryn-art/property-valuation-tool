@@ -81,6 +81,7 @@ export interface RentalCalcState {
   landValuePerM2: string;
   refurb: string;
   expenseLines: ExpenseLine[];
+  brokerName: string;
 }
 
 export interface RentalCalcSetters {
@@ -98,6 +99,7 @@ export interface RentalCalcSetters {
   setLandValuePerM2: (v: string) => void;
   setRefurb: (v: string) => void;
   setExpenseLines: (fn: ExpenseLine[] | ((prev: ExpenseLine[]) => ExpenseLine[])) => void;
+  setBrokerName: (v: string) => void;
 }
 
 interface Props {
@@ -127,7 +129,7 @@ export default function CalculatorRental({ state, setters, nextId, setNextId, va
   const {
     lines, otherMonthly, actualAnnualRev, propertyType, stabilisedOccPct,
     scenario, opexAnnual, utilityAdj, capLowPct, capHighPct, unusedLandSize,
-    landValuePerM2, refurb, expenseLines,
+    landValuePerM2, refurb, expenseLines, brokerName,
   } = state;
 
   const isStorage = propertyType === "storage";
@@ -731,6 +733,11 @@ export default function CalculatorRental({ state, setters, nextId, setNextId, va
           </Label>
           <Input id="input-refurb" type="number" min="0" step="0.01" placeholder="R 0" value={refurb} onChange={(e) => setters.setRefurb(e.target.value)} />
         </div>
+
+        <div className="mt-4 pt-4 border-t">
+          <Label className="text-xs font-medium" htmlFor="input-broker-name">Prepared by (broker name on report)</Label>
+          <Input id="input-broker-name" type="text" placeholder="e.g. Peet Brits" value={brokerName} onChange={(e) => setters.setBrokerName(e.target.value)} />
+        </div>
       </Card>
 
       {/* ── STEP 5: Results ───────────────────────────────────────── */}
@@ -817,7 +824,7 @@ export default function CalculatorRental({ state, setters, nextId, setNextId, va
         <Button variant="outline" size="sm" onClick={() => exportRentalClientPDF(valuationName, { ...state, opexAnnual: String(calc.opex) }, calc)}>
           <FileDown className="w-3.5 h-3.5 mr-1.5" /> Client Summary
         </Button>
-        <Button variant="outline" size="sm" onClick={() => exportRentalPDF(valuationName, { ...state, opexAnnual: String(calc.opex) }, calc)}>
+        <Button variant="outline" size="sm" onClick={() => exportRentalPDF(valuationName, { ...state, opexAnnual: String(calc.opex) }, calc, brokerName)}>
           <FileDown className="w-3.5 h-3.5 mr-1.5" /> Full Report
         </Button>
       </div>

@@ -140,8 +140,8 @@ function drawFooter(doc: jsPDF, totalPages: number) {
   }
 }
 
-function drawSignature(doc: jsPDF, y: number): number {
-  if (y > PAGE_H - 80) { doc.addPage(); y = 20; }
+function drawSignature(doc: jsPDF, y: number, brokerName = "Peet Brits"): number {
+  if (y > PAGE_H - 70) { doc.addPage(); y = 20; }
 
   y += 8;
   setDrawColor(doc, DIVIDER);
@@ -149,61 +149,37 @@ function drawSignature(doc: jsPDF, y: number): number {
   doc.line(MARGIN, y, PAGE_W - MARGIN, y);
   y += 10;
 
-  const leftX = MARGIN;
-  const rightX = PAGE_W / 2 + 8;
-  const sigLineW = 62;
-
-  // Row 1: labels
   doc.setFont("helvetica", "normal");
   doc.setFontSize(8);
   setTextColor(doc, MUTED);
-  doc.text("Prepared by:", leftX, y);
-  doc.text("Accepted by (Seller):", rightX, y);
+  doc.text("Prepared by:", MARGIN, y);
 
-  // Row 2: names
   y += 8;
   doc.setFont("helvetica", "bold");
   doc.setFontSize(11);
   setTextColor(doc, NAV);
-  doc.text("Peet Brits", leftX, y);
+  doc.text(brokerName, MARGIN, y);
 
-  // Row 3: roles
   y += 5;
   doc.setFont("helvetica", "normal");
   doc.setFontSize(8.5);
   setTextColor(doc, TEXT);
-  doc.text("Aldes Auctions", leftX, y);
-  doc.text("Seller / Vendor", rightX, y);
+  doc.text("Aldes Auctions", MARGIN, y);
 
-  // Row 4: signature lines
   y += 12;
   setDrawColor(doc, NAV);
   doc.setLineWidth(0.4);
-  doc.line(leftX, y, leftX + sigLineW, y);
-  doc.line(rightX, y, rightX + sigLineW, y);
+  doc.line(MARGIN, y, MARGIN + 60, y);
 
-  // Row 5: "Signature" labels
   y += 5;
   doc.setFont("helvetica", "normal");
   doc.setFontSize(7.5);
   setTextColor(doc, MUTED);
-  doc.text("Signature", leftX, y);
-  doc.text("Signature", rightX, y);
+  doc.text("Signature", MARGIN, y);
 
-  // Row 6: date lines
-  y += 10;
   setDrawColor(doc, NAV);
-  doc.setLineWidth(0.4);
-  doc.line(leftX, y, leftX + 40, y);
-  doc.line(rightX, y, rightX + 40, y);
-
-  // Row 7: "Date" labels
-  y += 5;
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(7.5);
-  setTextColor(doc, MUTED);
-  doc.text("Date", leftX, y);
-  doc.text("Date", rightX, y);
+  doc.line(PAGE_W - MARGIN - 50, y - 5, PAGE_W - MARGIN, y - 5);
+  doc.text("Date", PAGE_W - MARGIN - 50, y);
 
   return y + 10;
 }
@@ -475,6 +451,7 @@ export function exportRentalPDF(
     valueNote: string;
     opex?: number;
   },
+  brokerName = "Peet Brits",
 ) {
   const doc = new jsPDF({ unit: "mm", format: "a4" });
   const isStorage = state.propertyType === "storage";
@@ -655,7 +632,7 @@ export function exportRentalPDF(
   doc.text(calc.valueNote, MARGIN, y + 3);
   y += 8;
 
-  drawSignature(doc, y);
+  drawSignature(doc, y, brokerName);
   drawFooter(doc, doc.getNumberOfPages());
   doc.save(`${valuationName} – Broker Opinion of Value.pdf`);
 }
@@ -697,6 +674,7 @@ export function exportHospitalityPDF(
       revenue: number;
     }[];
   },
+  brokerName = "Peet Brits",
 ) {
   const doc = new jsPDF({ unit: "mm", format: "a4" });
 
@@ -877,7 +855,7 @@ export function exportHospitalityPDF(
   if (y > PAGE_H - 50) { doc.addPage(); y = 16; }
   y = valuationBox(doc, calc.lo, calc.hi, yieldStr, paybackStr, y);
 
-  drawSignature(doc, y);
+  drawSignature(doc, y, brokerName);
   drawFooter(doc, doc.getNumberOfPages());
   doc.save(`${valuationName} – Broker Opinion of Value.pdf`);
 }
